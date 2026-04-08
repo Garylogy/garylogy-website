@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>GARYLOGY · 嘉里玄学 | BaZi · Qi Men Dun Jia · Feng Shui</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&amp;family=Noto+Serif+SC:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-deep: #0a0908;
+      --bg-card: #151311;
+      --bg-elevated: #1c1917;
+      --fg: #faf7f2;
+      --fg-muted: #a8a29e;
+      --accent: #d4a853;
+      --accent-glow: #f5c96a;
+      --accent-deep: #b8860b;
+      --border: #2e2a26;
+      --fire: #c2410c;
+      --fire-glow: #fb923c;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Noto Serif SC', serif;
+      background: var(--bg-deep);
+      color: var(--fg);
+      overflow-x: hidden;
+    }
+
+    .font-display {
+      font-family: 'Cormorant Garamond', 'Noto Serif SC', serif;
+    }
+
+    /* Background Energy Field */
+    .energy-field {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .energy-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.4;
+      animation: float 20s ease-in-out infinite;
+    }
+
+    .orb-1 {
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+      top: -200px;
+      right: -200px;
+      animation-delay: 0s;
+    }
+
+    .orb-2 {
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, var(--fire) 0%, transparent 70%);
+      bottom: 20%;
+      left: -100px;
+      animation-delay: -7s;
+    }
+
+    .orb-3 {
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      top: 50%;
+      right: 10%;
+      animation-delay: -14s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      25% { transform: translate(30px, -40px) scale(1.05); }
+      50% { transform: translate(-20px, 20px) scale(0.95); }
+      75% { transform: translate(40px, 30px) scale(1.02); }
+    }
+
+    /* Particle Canvas */
+    #particlesCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Main Content */
+    .main-content {
+      position: relative;
+      z-index: 10;
+    }
+
+    /* Navigation */
+    .nav-blur {
+      backdrop-filter: blur(20px);
+      background: rgba(10, 9, 8, 0.7);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-link {
+      position: relative;
+      color: var(--fg-muted);
+      transition: color 0.3s ease;
+      text-decoration: none;
+    }
+
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 1px;
+      background: var(--accent);
+      transition: width 0.3s ease;
+    }
+
+    .nav-link:hover {
+      color: var(--accent);
+    }
+
+    .nav-link:hover::after {
+      width: 100%;
+    }
+
+    /* Hero Section */
+    .hero-section {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+
+    .hero-title {
+      font-size: clamp(2.5rem, 8vw, 6rem);
+      font-weight: 700;
+      line-height: 1.1;
+      background: linear-gradient(135deg, var(--fg) 0%, var(--accent-glow) 50%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-subtitle {
+      font-size: clamp(1rem, 2.5vw, 1.5rem);
+      color: var(--fg-muted);
+      letter-spacing: 0.1em;
+    }
+
+    /* Stats Badge */
+    .stat-badge {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .stat-badge:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+      box-shadow: 0 10px 40px rgba(212, 168, 83, 0.15);
+    }
+
+    /* Buttons */
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
+      color: var(--bg-deep);
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      display: inline-block;
+      text-decoration: none;
+    }
+
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .btn-primary:hover::before {
+      left: 100%;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(212, 168, 83, 0.4);
+    }
+
+    .btn-secondary {
+      border: 1px solid var(--border);
+      color: var(--fg);
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      display: inline-block;
+      text-decoration: none;
+      background: transparent;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(212, 168, 83, 0.05);
+    }
+
+    /* Service Cards */
+    .service-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      transition: all 0.4s ease;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .service-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .service-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-8px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+
+    .service-card:hover::before {
+      opacity: 1;
+    }
+
+    .service-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(212,168,83,0.15) 0%, rgba(212,168,83,0.05) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      font-size: 1.75rem;
+    }
+
+    .service-price {
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    /* Process Steps */
+    .process-step {
+      position: relative;
+      padding-left: 4rem;
+    }
+
+    .process-number {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
+      color: var(--bg-deep);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.25rem;
+    }
+
+    .process-connector {
+      position: absolute;
+      left: 23px;
+      top: 56px;
+      width: 2px;
+      height: calc(100% - 48px);
+      background: linear-gradient(180deg, var(--accent), transparent);
+    }
+
+    /* Testimonial Card */
+    .testimonial-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      position: relative;
+    }
+
+    .testimonial-card::before {
+      content: '"';
+      position: absolute;
+      top: 1rem;
+      left: 1.5rem;
+      font-size: 4rem;
+      color: var(--accent);
+      opacity: 0.3;
+      font-family: 'Cormorant Garamond', serif;
+      line-height: 1;
+    }
+
+    .star-rating {
+      color: var(--accent);
+      letter-spacing: 2px;
+    }
+
+    /* Payment Section */
+    .payment-card {
+      background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-card) 100%);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .payment-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, rgba(212,168,83,0.1) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    /* QR Placeholder */
+    .qr-placeholder {
+      width: 180px;
+      height: 180px;
+      background: var(--fg);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    /* Scroll Reveal */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .reveal.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+    .reveal-delay-5 { transition-delay: 0.5s; }
+
+    /* Section Divider */
+    .section-divider {
+      width: 60px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      margin: 0 auto;
+    }
+
+    /* Floating Bagua */
+    .bagua-float {
+      animation: baguaRotate 60s linear infinite;
+    }
+
+    @keyframes baguaRotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .glow-text {
+      text-shadow: 0 0 30px rgba(212, 168, 83, 0.5);
+    }
+
+    /* Mobile Menu */
+    .mobile-menu {
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+      position: fixed;
+      top: 0;
+      right: 0;
+      height: 100%;
+      width: 280px;
+      background: var(--bg-deep);
+      border-left: 1px solid var(--border);
+      padding: 2rem 1.5rem;
+      z-index: 1000;
+    }
+
+    .mobile-menu.open {
+      transform: translateX(0);
+    }
+  </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.left-0{left:0px}.right-0{right:0px}.right-4{right:1rem}.top-0{top:0px}.top-4{top:1rem}.z-50{z-index:50}.mx-auto{margin-left:auto;margin-right:auto}.mb-1{margin-bottom:0.25rem}.mb-12{margin-bottom:3rem}.mb-16{margin-bottom:4rem}.mb-2{margin-bottom:0.5rem}.mb-3{margin-bottom:0.75rem}.mb-4{margin-bottom:1rem}.mb-6{margin-bottom:1.5rem}.mb-8{margin-bottom:2rem}.mt-12{margin-top:3rem}.mt-2{margin-top:0.5rem}.mt-20{margin-top:5rem}.mt-4{margin-top:1rem}.mt-6{margin-top:1.5rem}.mt-8{margin-top:2rem}.mt-auto{margin-top:auto}.block{display:block}.flex{display:flex}.inline-flex{display:inline-flex}.grid{display:grid}.hidden{display:none}.h-8{height:2rem}.h-96{height:24rem}.h-full{height:100%}.w-8{width:2rem}.w-96{width:24rem}.w-full{width:100%}.max-w-2xl{max-width:42rem}.max-w-4xl{max-width:56rem}.max-w-6xl{max-width:72rem}.max-w-7xl{max-width:80rem}.max-w-lg{max-width:32rem}.max-w-xl{max-width:36rem}.flex-1{flex:1 1 0%}.shrink-0{flex-shrink:0}.grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-12{gap:3rem}.gap-2{gap:0.5rem}.gap-3{gap:0.75rem}.gap-4{gap:1rem}.gap-6{gap:1.5rem}.gap-8{gap:2rem}.space-y-12 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(3rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(3rem * var(--tw-space-y-reverse))}.space-y-4 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.rounded-full{border-radius:9999px}.border-t{border-top-width:1px}.p-2{padding:0.5rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.py-12{padding-top:3rem;padding-bottom:3rem}.py-24{padding-top:6rem;padding-bottom:6rem}.py-4{padding-top:1rem;padding-bottom:1rem}.pt-24{padding-top:6rem}.pt-4{padding-top:1rem}.text-center{text-align:center}.text-2xl{font-size:1.5rem;line-height:2rem}.text-4xl{font-size:2.25rem;line-height:2.5rem}.text-5xl{font-size:3rem;line-height:1}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1.25rem}.font-bold{font-weight:700}.font-semibold{font-weight:600}.leading-relaxed{line-height:1.625}.tracking-wide{letter-spacing:0.025em}.tracking-wider{letter-spacing:0.05em}.tracking-widest{letter-spacing:0.1em}@media (min-width: 640px){.sm\:grid-cols-4{grid-template-columns:repeat(4, minmax(0, 1fr))}.sm\:flex-row{flex-direction:row}}@media (min-width: 768px){.md\:col-span-2{grid-column:span 2 / span 2}.md\:flex{display:flex}.md\:hidden{display:none}.md\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.md\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.md\:flex-row{flex-direction:row}.md\:text-left{text-align:left}.md\:text-5xl{font-size:3rem;line-height:1}}@media (min-width: 1024px){.lg\:col-span-1{grid-column:span 1 / span 1}.lg\:flex{display:flex}.lg\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.lg\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}}</style></head>
+<body>
+  <div class="energy-field" aria-hidden="true">
+    <div class="energy-orb orb-1"></div>
+    <div class="energy-orb orb-2"></div>
+    <div class="energy-orb orb-3"></div>
+  </div>
+  <canvas id="particlesCanvas" aria-hidden="true" width="2195" height="1010"></canvas>
+
+  <div class="main-content">
+    <nav class="nav-blur fixed top-0 left-0 right-0 z-50">
+      <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <a href="#hero" class="font-display text-xl font-bold tracking-wider" style="color: var(--accent);">GARYLOGY</a>
+        <div class="hidden md:flex items-center gap-8">
+          <a href="#about" class="nav-link text-sm tracking-wide">About</a>
+          <a href="#services" class="nav-link text-sm tracking-wide">Services</a>
+          <a href="#process" class="nav-link text-sm tracking-wide">Process</a>
+          <a href="#testimonials" class="nav-link text-sm tracking-wide">Reviews</a>
+          <a href="#crystals" class="nav-link text-sm tracking-wide">Crystals</a>
+          <a href="#booking" class="btn-primary text-sm">Book Now</a>
+        </div>
+        <button id="menuBtn" class="md:hidden p-2" aria-label="Toggle menu">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+      </div>
+      <div id="mobileMenu" class="mobile-menu" style="background: var(--bg-deep); border-color: var(--border);">
+        <button id="closeMenu" class="absolute top-4 right-4 p-2" aria-label="Close menu">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+        <div class="flex flex-col gap-6 mt-12">
+          <a href="#about" class="nav-link text-lg">About</a>
+          <a href="#services" class="nav-link text-lg">Services</a>
+          <a href="#process" class="nav-link text-lg">Process</a>
+          <a href="#testimonials" class="nav-link text-lg">Reviews</a>
+          <a href="#crystals" class="nav-link text-lg">Crystals</a>
+          <a href="#booking" class="btn-primary text-center mt-4">Book Now</a>
+        </div>
+      </div>
+    </nav>
+
+    <section id="hero" class="hero-section px-6">
+      <div class="max-w-7xl mx-auto w-full pt-24">
+        <div class="grid lg:grid-cols-2 gap-12 items-center">
+          <div class="reveal active">
+            <div class="flex items-center gap-3 mb-6"><span class="text-sm tracking-wider" style="color: var(--fg-muted);">Singapore</span><span style="color: var(--accent);">·</span><span class="text-sm tracking-wider" style="color: var(--fg-muted);">Period 9</span><span style="color: var(--accent);">·</span><span class="text-sm" style="color: var(--fire-glow);">九紫离火运</span></div>
+            <h1 class="font-display hero-title mb-6">Navigate Your<br>Destiny with<br><span class="glow-text">Precision</span></h1>
+            <p class="hero-subtitle mb-4">精准导航，掌舵命运</p>
+            <p class="text-lg mb-8 max-w-lg" style="color: var(--fg-muted);">Empowering your life and business decisions through BaZi, Qi Men Dun Jia, and Feng Shui.<span class="block mt-2">通过八字命理、奇门遁甲与风水智慧，为您的生活与商业决策赋能。</span></p>
+            <div class="flex flex-wrap gap-4 mb-12"><a href="https://calendly.com/gary-ppw/30min" class="btn-primary" target="_blank" rel="noopener noreferrer">Book Your Consultation · 立即预约</a><a href="#services" class="btn-secondary">View Services · 查看服务</a></div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div class="stat-badge text-center reveal reveal-delay-1 active"><div class="font-display text-2xl font-bold" style="color: var(--accent);">3</div><div class="text-xs tracking-wide" style="color: var(--fg-muted);">Disciplines 玄学体系</div></div>
+              <div class="stat-badge text-center reveal reveal-delay-2 active"><div class="font-display text-2xl font-bold" style="color: var(--accent);">100%</div><div class="text-xs tracking-wide" style="color: var(--fg-muted);">Online 全线上</div></div>
+              <div class="stat-badge text-center reveal reveal-delay-3 active"><div class="font-display text-2xl font-bold" style="color: var(--accent);">EN·中</div><div class="text-xs tracking-wide" style="color: var(--fg-muted);">Bilingual 双语</div></div>
+              <div class="stat-badge text-center reveal reveal-delay-4 active"><div class="font-display text-2xl font-bold" style="color: var(--fire-glow);">P.9</div><div class="text-xs tracking-wide" style="color: var(--fg-muted);">Period 9 九运专家</div></div>
+            </div>
+          </div>
+          <div class="reveal reveal-delay-2 hidden lg:flex items-center justify-center active">
+            <div class="relative w-96 h-96"><svg class="bagua-float w-full h-full" viewBox="0 0 400 400" fill="none"><circle cx="200" cy="200" r="180" stroke="var(--accent)" stroke-width="1" stroke-dasharray="2 6" opacity="0.2"></circle><circle cx="200" cy="200" r="150" fill="var(--bg-card)" stroke="var(--accent)" stroke-width="1"></circle><path d="M200 50 A150 150 0 0 1 200 350 A75 75 0 0 1 200 200 A75 75 0 0 0 200 50" fill="var(--accent)"></path><circle cx="200" cy="125" r="37.5" fill="var(--bg-card)"></circle><circle cx="200" cy="275" r="37.5" fill="var(--accent)"></circle></svg></div>
+          </div>
+        </div>
+        <div class="mt-20 reveal reveal-delay-3"><div class="payment-card max-w-4xl mx-auto"><div class="flex flex-col md:flex-row items-center gap-6 text-center md:text-left"><div class="text-5xl" style="color: var(--fire-glow);">🔥</div><div class="flex-1"><h3 class="font-display text-xl font-semibold mb-2">We Are in Period 9 · 九紫离火运</h3><p style="color: var(--fg-muted);">The 20-year Fire era (2024–2044) rewards visibility, intelligence &amp; personal branding. Are you aligned?</p><p class="mt-2 text-sm" style="color: var(--fire-glow);">火运当道，主曝光、才华与个人品牌。把握天时，方能事半功倍。</p></div></div></div></div>
+      </div>
+    </section>
+
+    <section id="about" class="py-24 px-6"><div class="max-w-6xl mx-auto"><div class="text-center mb-16 reveal"><p class="text-sm tracking-widest mb-4" style="color: var(--accent);">About / 关于</p><div class="section-divider mb-8"></div><h2 class="font-display text-4xl md:text-5xl font-bold mb-4">Gary Pang</h2><p class="text-lg" style="color: var(--fg-muted);">冯先生 · 玄学顾问</p></div><div class="grid lg:grid-cols-2 gap-12 items-center"><div class="reveal"><p class="text-lg leading-relaxed mb-6" style="color: var(--fg-muted);">Gary Pang is a Chinese Metaphysics consultant who believes that ancient wisdom should serve modern goals. By blending BaZi destiny analysis, Qi Men Dun Jia strategic forecasting, and Feng Shui space optimisation, Gary provides a holistic roadmap tailored to each client.</p><p class="text-lg leading-relaxed mb-6" style="color: var(--fg-muted);">As we enter Period 9 (九紫离火运), Gary's approach focuses on clarity, timing, and strategic alignment — helping individuals and business owners thrive in a rapidly changing world. Warm, credible, and practical, Gary is your partner at every life turning point.</p></div><div class="reveal reveal-delay-2"><div class="grid grid-cols-2 gap-4"><div class="stat-badge"><div class="text-sm font-semibold" style="color: var(--accent);">BaZi 八字命理</div></div><div class="stat-badge"><div class="text-sm font-semibold" style="color: var(--accent);">Qi Men Dun Jia 奇门遁甲</div></div><div class="stat-badge"><div class="text-sm font-semibold" style="color: var(--accent);">Feng Shui 风水</div></div><div class="stat-badge"><div class="text-sm font-semibold" style="color: var(--accent);">Period 9 Expert 九运</div></div><div class="stat-badge"><div class="text-sm font-semibold" style="color: var(--accent);">Business Strategy 商业策略</div></div><div class="stat-badge"><div class="text-sm font-semibold" style="color: var(--accent);">Bilingual EN · 中</div></div></div></div></div></div></section>
+
+    <section id="services" class="py-24 px-6" style="background: linear-gradient(180deg, transparent 0%, var(--bg-card) 50%, transparent 100%);"><div class="max-w-6xl mx-auto"><div class="text-center mb-16 reveal"><p class="text-sm tracking-widest mb-4" style="color: var(--accent);">Services / 服务项目</p><div class="section-divider mb-8"></div><h2 class="font-display text-4xl md:text-5xl font-bold mb-4">What I Offer</h2><p class="text-lg" style="color: var(--fg-muted);">我的服务</p><p class="mt-4 max-w-2xl mx-auto" style="color: var(--fg-muted);">All consultations are conducted via Google Meet (online) or in-person (Singapore). Choose the service that fits your needs.</p></div><div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="service-card reveal reveal-delay-1"><div class="service-icon">📜</div><h3 class="font-display text-xl font-semibold mb-1">BaZi Destiny Analysis</h3><p class="text-sm mb-2" style="color: var(--accent);">八字命理解盘</p><p class="text-sm mb-3" style="color: var(--fg-muted);">Deep dive into your natal chart to understand your strengths, weaknesses, career path, wealth potential, and relationships.</p><p class="text-xs mb-4" style="color: var(--fg-muted);">深度解析您的生辰八字，洞悉自身优劣势，明晰事业方向与财运潜力。</p><div class="mt-auto pt-4 border-t" style="border-color: var(--border);"><span class="service-price">SGD $88 – $188</span><span class="text-sm" style="color: var(--fg-muted);"> / session</span></div></div>
+      <div class="service-card reveal reveal-delay-2"><div class="service-icon">🌀</div><h3 class="font-display text-xl font-semibold mb-1">Qi Men Dun Jia Divination</h3><p class="text-sm mb-2" style="color: var(--accent);">奇门遁甲占卜</p><p class="text-sm mb-3" style="color: var(--fg-muted);">Strategic forecasting for specific decisions — investments, business moves, relationships, and critical timing choices.</p><p class="text-xs mb-4" style="color: var(--fg-muted);">针对投资、创业、情感等具体问题进行时空占卜，提供战略性建议。</p><div class="mt-auto pt-4 border-t" style="border-color: var(--border);"><span class="service-price">SGD $88 – $188</span><span class="text-sm" style="color: var(--fg-muted);"> / Case</span></div></div>
+      <div class="service-card reveal reveal-delay-3"><div class="service-icon">⭐</div><h3 class="font-display text-xl font-semibold mb-1">Annual Luck Forecast</h3><p class="text-sm mb-2" style="color: var(--accent);">流年运势分析</p><p class="text-sm mb-3" style="color: var(--fg-muted);">A comprehensive look at your year ahead — opportunities, challenges, health, wealth, and career trends for the coming 12 months.</p><p class="text-xs mb-4" style="color: var(--fg-muted);">全面分析未来一年运势，把握机遇、规避风险，掌握事业与财运走向。</p><div class="mt-auto pt-4 border-t" style="border-color: var(--border);"><span class="service-price">SGD $188 – $388</span><span class="text-sm" style="color: var(--fg-muted);"> / session</span></div></div>
+      <div class="service-card reveal reveal-delay-4"><div class="service-icon">🏠</div><h3 class="font-display text-xl font-semibold mb-1">Feng Shui Consultation</h3><p class="text-sm mb-2" style="color: var(--accent);">风水布局咨询</p><p class="text-sm mb-3" style="color: var(--fg-muted);">Online analysis via floor plan — optimise your home or office energy to enhance wealth, health, and relationships in Period 9.</p><p class="text-xs mb-4" style="color: var(--fg-muted);">通过户型图进行线上风水评估，优化居家或办公室能量，提升九运期间的财运与健康。</p><div class="mt-auto pt-4 border-t" style="border-color: var(--border);"><span class="service-price">SGD $688 – $1,288</span><span class="text-sm" style="color: var(--fg-muted);"> / session</span></div></div>
+      <div class="service-card reveal reveal-delay-5 md:col-span-2 lg:col-span-1"><div class="service-icon">💼</div><h3 class="font-display text-xl font-semibold mb-1">Business Strategy Session</h3><p class="text-sm mb-2" style="color: var(--accent);">商业策略咨询</p><p class="text-sm mb-3" style="color: var(--fg-muted);">High-level combo of BaZi + Qi Men + Feng Shui tailored for entrepreneurs and business leaders making major decisions.</p><p class="text-xs mb-4" style="color: var(--fg-muted);">专为创业者与商界领袖打造，融合八字、奇门与风水的全方位商业策略咨询。</p><div class="mt-auto pt-4 border-t" style="border-color: var(--border);"><span class="service-price">SGD $1,288</span><span class="text-sm" style="color: var(--fg-muted);"> / session</span></div></div>
+    </div></div></section>
+
+    <section id="process" class="py-24 px-6"><div class="max-w-4xl mx-auto"><div class="text-center mb-16 reveal"><p class="text-sm tracking-widest mb-4" style="color: var(--accent);">Process / 咨询流程</p><div class="section-divider mb-8"></div><h2 class="font-display text-4xl md:text-5xl font-bold mb-4">How It Works</h2></div><div class="space-y-12"><div class="process-step reveal reveal-delay-1"><div class="process-number">1</div><div class="process-connector"></div><h3 class="font-display text-2xl font-semibold mb-2">Book · 预约</h3><p style="color: var(--fg-muted);">Select your service and time slot via Calendly. Complete PayNow payment.</p></div><div class="process-step reveal reveal-delay-2"><div class="process-number">2</div><div class="process-connector"></div><h3 class="font-display text-2xl font-semibold mb-2">Consult · 咨询</h3><p style="color: var(--fg-muted);">45–90 min session via Google Meet or in-person (Singapore).</p></div><div class="process-step reveal reveal-delay-3"><div class="process-number">3</div><h3 class="font-display text-2xl font-semibold mb-2">Receive · 交付</h3><p style="color: var(--fg-muted);">Personalised summary + action plan within 24h.</p></div></div></div></section>
+
+    <section id="testimonials" class="py-24 px-6" style="background: linear-gradient(180deg, transparent 0%, var(--bg-card) 50%, transparent 100%);"><div class="max-w-6xl mx-auto"><div class="text-center mb-16 reveal"><p class="text-sm tracking-widest mb-4" style="color: var(--accent);">Testimonials / 客户评价</p><div class="section-divider mb-8"></div><h2 class="font-display text-4xl md:text-5xl font-bold mb-4">What Clients Say</h2></div><div class="grid md:grid-cols-3 gap-6"><div class="testimonial-card reveal reveal-delay-1"><div class="star-rating mb-4">★★★★★</div><p class="mb-4" style="color: var(--fg-muted);">"Gary's insights into my BaZi chart were life-changing."</p><div class="mt-6 pt-4 border-t" style="border-color: var(--border);"><p class="font-semibold">Client A</p></div></div><div class="testimonial-card reveal reveal-delay-2"><div class="star-rating mb-4">★★★★★</div><p class="mb-4" style="color: var(--fg-muted);">"The Qi Men divination was surprisingly accurate."</p><div class="mt-6 pt-4 border-t"><p class="font-semibold">Client B</p></div></div><div class="testimonial-card reveal reveal-delay-3"><div class="star-rating mb-4">★★★★★</div><p class="mb-4" style="color: var(--fg-muted);">"Professional, warm, highly recommended."</p><div class="mt-6 pt-4 border-t"><p class="font-semibold">Client C</p></div></div></div></div></section>
+
+    <section id="crystals" class="py-24 px-6"><div class="max-w-4xl mx-auto"><div class="text-center mb-12 reveal"><p class="text-sm tracking-widest mb-4" style="color: var(--accent);">Crystals &amp; Blessings / 水晶能量</p><div class="section-divider mb-8"></div><h2 class="font-display text-4xl md:text-5xl font-bold mb-4">Sacred Tools for Your Journey</h2><p class="text-lg" style="color: var(--fg-muted);">增强运势 · 净化能量</p></div><div class="payment-card reveal reveal-delay-1 text-center"><div class="service-icon mx-auto" style="width: 80px; height: 80px; font-size: 2.5rem;">💎</div><h3 class="font-display text-2xl font-semibold mt-4 mb-2">Crystal Blessing Store</h3><p class="text-sm mb-2" style="color: var(--accent);">高能水晶 · 开运饰品 · 风水摆件</p><p class="text-md mb-6 max-w-xl mx-auto" style="color: var(--fg-muted);">Explore our curated collection of high-vibration crystals, feng shui enhancers, and blessed amulets — handpicked to support your spiritual and material abundance in Period 9.</p><p class="text-sm mb-6" style="color: var(--fg-muted);">精选高能量水晶、风水吉祥物及开光护符，助您在九运中提升频率，吸引丰盛。</p><a href="https://crystal-blessing-store.myshopify.com/" target="_blank" rel="noopener noreferrer" class="btn-primary inline-flex items-center gap-2">Visit the Crystal Store · 前往水晶商店<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7V17"></path></svg></a><div class="mt-6 pt-4 border-t border-border text-xs" style="color: var(--fg-muted);">International shipping available · 全球配送</div></div></div></section>
+
+    <section id="payment" class="py-24 px-6"><div class="max-w-4xl mx-auto"><div class="text-center mb-16 reveal"><p class="text-sm tracking-widest mb-4" style="color: var(--accent);">Payment / 支付方式</p><div class="section-divider mb-8"></div><h2 class="font-display text-4xl md:text-5xl font-bold mb-4">Pay via PayNow</h2></div><div class="payment-card reveal"><div class="grid md:grid-cols-2 gap-8"><div><h3 class="font-display text-xl font-semibold mb-6">How to Pay · 如何付款</h3><div class="space-y-4"><div class="flex gap-4"><div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0" style="background: var(--accent); color: var(--bg-deep);">1</div><p class="text-sm" style="color: var(--fg-muted);">Book via Calendly → confirmation email</p></div><div class="flex gap-4"><div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0" style="background: var(--accent); color: var(--bg-deep);">2</div><p class="text-sm" style="color: var(--fg-muted);">PayNow to +65 9655 6588 (Gary Pang)</p></div><div class="flex gap-4"><div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0" style="background: var(--accent); color: var(--bg-deep);">3</div><p class="text-sm" style="color: var(--fg-muted);">Send screenshot via WhatsApp to confirm</p></div></div><div class="mt-8"><p><span style="color: var(--fg-muted);">PayNow Mobile:</span> <span class="font-semibold">+65 9655 6588</span></p><p><span style="color: var(--fg-muted);">Reference:</span> <span class="font-semibold">Your Name + Service</span></p></div></div><div class="text-center"><div class="qr-placeholder mb-4" style="padding: 10px; background: #fff;"><img src="assets/paynow-qr.png" alt="PayNow QR" style="width: 100%; height: 100%; object-fit: contain;"></div><p class="text-sm" style="color: var(--fg-muted);">Scan with banking app</p></div></div></div></div></section>
+
+    <section id="booking" class="py-24 px-6" style="background: linear-gradient(180deg, transparent 0%, var(--bg-card) 50%, var(--bg-card) 100%);"><div class="max-w-4xl mx-auto text-center"><div class="reveal"><h2 class="font-display text-4xl md:text-5xl font-bold mb-4">Ready to Align with Your Destiny?</h2><p class="text-lg mb-8" style="color: var(--fg-muted);">Book your session, complete payment, and begin your journey.</p></div><div class="flex flex-col sm:flex-row gap-4 justify-center mb-12 reveal reveal-delay-1"><a href="https://calendly.com/gary-ppw/30min" class="btn-primary text-lg" target="_blank">Book via Calendly · 点击预约</a><a href="https://wa.me/6596556588?text=Hi%20Gary%2C%20I%27d%20like%20to%20book%20a%20Garylogy%20consultation!" class="btn-secondary" target="_blank">WhatsApp Gary · 直接咨询</a></div></div></section>
+
+    <footer class="py-12 px-6 border-t" style="border-color: var(--border);"><div class="max-w-6xl mx-auto text-center"><p class="font-display text-xl font-bold mb-2" style="color: var(--accent);">GARYLOGY</p><p class="text-sm" style="color: var(--fg-muted);">© 2026 · BaZi · Qi Men Dun Jia · Feng Shui · Singapore</p></div></footer>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('particlesCanvas');
+    let ctx = canvas.getContext('2d');
+    let particles = [];
+    let animationId = null;
+
+    function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    class Particle { constructor() { this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height; this.size = Math.random() * 2 + 0.5; this.speedX = (Math.random() - 0.5) * 0.3; this.speedY = (Math.random() - 0.5) * 0.2; this.opacity = Math.random() * 0.4 + 0.1; } update() { this.x += this.speedX; this.y += this.speedY; if (this.x < 0) this.x = canvas.width; if (this.x > canvas.width) this.x = 0; if (this.y < 0) this.y = canvas.height; if (this.y > canvas.height) this.y = 0; } draw() { if (!ctx) return; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fillStyle = `rgba(212, 168, 83, ${this.opacity})`; ctx.fill(); } }
+    function initParticles() { particles = []; const particleCount = Math.min(150, Math.floor(window.innerWidth / 12)); for (let i = 0; i < particleCount; i++) particles.push(new Particle()); }
+    function animateParticles() { if (!ctx) return; ctx.clearRect(0, 0, canvas.width, canvas.height); for (let p of particles) { p.update(); p.draw(); } animationId = requestAnimationFrame(animateParticles); }
+    function setupParticles() { resizeCanvas(); initParticles(); animateParticles(); }
+    window.addEventListener('resize', () => { resizeCanvas(); initParticles(); });
+    const revealElements = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('active'); observer.unobserve(entry.target); } }); }, { threshold: 0.1, rootMargin: "0px 0px -40px 0px" });
+    revealElements.forEach(el => observer.observe(el));
+    const menuBtn = document.getElementById('menuBtn'), closeMenuBtn = document.getElementById('closeMenu'), mobileMenu = document.getElementById('mobileMenu'), mobileLinks = document.querySelectorAll('#mobileMenu a');
+    function openMenu() { mobileMenu.classList.add('open'); document.body.style.overflow = 'hidden'; }
+    function closeMenu() { mobileMenu.classList.remove('open'); document.body.style.overflow = ''; }
+    if (menuBtn) menuBtn.addEventListener('click', openMenu);
+    if (closeMenuBtn) closeMenuBtn.addEventListener('click', closeMenu);
+    mobileLinks.forEach(link => link.addEventListener('click', closeMenu));
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => { anchor.addEventListener('click', function(e) { const targetId = this.getAttribute('href'); if (targetId === "#" || targetId === "") return; const target = document.querySelector(targetId); if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); } }); });
+    window.addEventListener('load', () => { setupParticles(); revealElements.forEach(el => { if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add('active'); }); });
+  </script>
+
+
+<!-- ── GARYLOGY AI Chat Widget ── -->
+<style>
+  #gary-chat-btn {
+    position: fixed; bottom: 28px; right: 28px; z-index: 9999;
+    width: 60px; height: 60px; border-radius: 50%; border: none; cursor: pointer;
+    background: linear-gradient(135deg, #d4a853, #b8860b);
+    box-shadow: 0 4px 20px rgba(212,168,83,0.5);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; transition: transform 0.2s, box-shadow 0.2s;
+  }
+  #gary-chat-btn:hover { transform: scale(1.1); box-shadow: 0 6px 28px rgba(212,168,83,0.7); }
+  #gary-chat-bubble {
+    position: fixed; bottom: 100px; right: 28px; z-index: 9998;
+    width: 340px; max-width: calc(100vw - 40px);
+    background: #151311; border: 1px solid #2e2a26; border-radius: 16px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+    display: none; flex-direction: column; overflow: hidden;
+    font-family: 'Cormorant Garamond', 'Noto Serif SC', serif;
+  }
+  #gary-chat-bubble.open { display: flex; }
+  #gary-chat-header {
+    background: linear-gradient(135deg, #1c1917, #2e2a26);
+    padding: 14px 16px; display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid #2e2a26;
+  }
+  #gary-chat-header .avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: linear-gradient(135deg, #d4a853, #b8860b);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  #gary-chat-header .info .name { color: #faf7f2; font-size: 15px; font-weight: 600; }
+  #gary-chat-header .info .status { color: #d4a853; font-size: 11px; }
+  #gary-chat-close {
+    margin-left: auto; background: none; border: none; color: #a8a29e;
+    font-size: 20px; cursor: pointer; line-height: 1; padding: 4px;
+  }
+  #gary-chat-messages {
+    flex: 1; overflow-y: auto; padding: 14px 14px 8px;
+    display: flex; flex-direction: column; gap: 10px;
+    min-height: 220px; max-height: 320px;
+    scrollbar-width: thin; scrollbar-color: #2e2a26 transparent;
+  }
+  .gary-msg { display: flex; flex-direction: column; max-width: 85%; }
+  .gary-msg.bot { align-self: flex-start; }
+  .gary-msg.user { align-self: flex-end; }
+  .gary-msg .bubble {
+    padding: 9px 13px; border-radius: 12px; font-size: 13.5px; line-height: 1.55;
+  }
+  .gary-msg.bot .bubble { background: #1c1917; color: #faf7f2; border-bottom-left-radius: 4px; }
+  .gary-msg.user .bubble { background: linear-gradient(135deg, #d4a853, #b8860b); color: #0a0908; border-bottom-right-radius: 4px; }
+  .gary-typing { align-self: flex-start; }
+  .gary-typing .bubble { background: #1c1917; color: #a8a29e; font-size: 13px; padding: 9px 14px; border-radius: 12px; border-bottom-left-radius: 4px; }
+  #gary-chat-input-area {
+    display: flex; gap: 8px; padding: 10px 12px 12px;
+    border-top: 1px solid #2e2a26; background: #0a0908;
+  }
+  #gary-chat-input {
+    flex: 1; background: #1c1917; border: 1px solid #2e2a26; border-radius: 20px;
+    padding: 9px 14px; color: #faf7f2; font-size: 13px; outline: none;
+    font-family: inherit; resize: none;
+  }
+  #gary-chat-input::placeholder { color: #57534e; }
+  #gary-chat-input:focus { border-color: #d4a853; }
+  #gary-chat-send {
+    background: linear-gradient(135deg, #d4a853, #b8860b); border: none;
+    border-radius: 50%; width: 36px; height: 36px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; align-self: flex-end; margin-bottom: 1px;
+    transition: transform 0.15s;
+  }
+  #gary-chat-send:hover { transform: scale(1.1); }
+  #gary-chat-send svg { width: 16px; height: 16px; fill: #0a0908; }
+  #gary-unread-dot {
+    position: absolute; top: 2px; right: 2px;
+    width: 14px; height: 14px; background: #c2410c; border-radius: 50%;
+    border: 2px solid #0a0908; display: none;
+  }
+</style>
+
+<div id="gary-chat-bubble">
+  <div id="gary-chat-header">
+    <div class="avatar">✦</div>
+    <div class="info">
+      <div class="name">Gary · GARYLOGY</div>
+      <div class="status">九运玄学顾问 · Online</div>
+    </div>
+    <button id="gary-chat-close" aria-label="Close">×</button>
+  </div>
+  <div id="gary-chat-messages"></div>
+  <div id="gary-chat-input-area">
+    <input id="gary-chat-input" type="text" placeholder="Ask Gary anything... 问Gary任何问题" maxlength="300" />
+    <button id="gary-chat-send" aria-label="Send">
+      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+    </button>
+  </div>
+</div>
+
+<button id="gary-chat-btn" aria-label="Chat with Gary">
+  ✦
+  <span id="gary-unread-dot"></span>
+</button>
+
+<script>
+(function() {
+  const BOT_URL = 'https://web-production-244d4.up.railway.app/test';
+  const btn = document.getElementById('gary-chat-btn');
+  const bubble = document.getElementById('gary-chat-bubble');
+  const closeBtn = document.getElementById('gary-chat-close');
+  const messagesEl = document.getElementById('gary-chat-messages');
+  const input = document.getElementById('gary-chat-input');
+  const sendBtn = document.getElementById('gary-chat-send');
+  const unreadDot = document.getElementById('gary-unread-dot');
+
+  let isOpen = false;
+  let sessionId = 'web_' + Math.random().toString(36).substr(2, 9);
+  let greeted = false;
+
+  function toggleChat() {
+    isOpen = !isOpen;
+    bubble.classList.toggle('open', isOpen);
+    unreadDot.style.display = 'none';
+    if (isOpen && !greeted) {
+      greeted = true;
+      setTimeout(() => sendToBot('你好'), 400);
+    }
+    if (isOpen) input.focus();
+  }
+
+  function appendMsg(text, role) {
+    const wrap = document.createElement('div');
+    wrap.className = 'gary-msg ' + role;
+    const b = document.createElement('div');
+    b.className = 'bubble';
+    b.textContent = text;
+    wrap.appendChild(b);
+    messagesEl.appendChild(wrap);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return wrap;
+  }
+
+  function showTyping() {
+    const wrap = document.createElement('div');
+    wrap.className = 'gary-typing';
+    wrap.id = 'gary-typing-indicator';
+    wrap.innerHTML = '<div class="bubble">Gary 正在输入…</div>';
+    messagesEl.appendChild(wrap);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function removeTyping() {
+    const t = document.getElementById('gary-typing-indicator');
+    if (t) t.remove();
+  }
+
+  async function sendToBot(userMsg) {
+    if (userMsg && userMsg !== '你好') appendMsg(userMsg, 'user');
+    showTyping();
+    try {
+      const url = `${BOT_URL}?phone=${encodeURIComponent(sessionId)}&msg=${encodeURIComponent(userMsg)}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      removeTyping();
+      const reply = data.reply || '不好意思，我这边卡了一下，请再说一遍 😊';
+      appendMsg(reply, 'bot');
+      if (!isOpen) {
+        unreadDot.style.display = 'block';
+      }
+    } catch(e) {
+      removeTyping();
+      appendMsg('网络有点问题，请稍后再试 🙏', 'bot');
+    }
+  }
+
+  function handleSend() {
+    const msg = input.value.trim();
+    if (!msg) return;
+    input.value = '';
+    sendToBot(msg);
+  }
+
+  btn.addEventListener('click', toggleChat);
+  closeBtn.addEventListener('click', toggleChat);
+  sendBtn.addEventListener('click', handleSend);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } });
+
+  // Show unread dot after 8s if chat not opened
+  setTimeout(() => {
+    if (!isOpen && !greeted) {
+      unreadDot.style.display = 'block';
+    }
+  }, 8000);
+})();
+</script>
+<!-- ── End Chat Widget ── -->
+</body></html>
