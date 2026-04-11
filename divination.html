@@ -570,9 +570,12 @@
             <div class="cta-container">
                 <h3 style="color: var(--gold); margin-bottom: 20px;">想要更深入了解您的運勢？</h3>
                 <p style="margin-bottom: 20px; color: #ccc;">Gary 老師為您提供專業的一對一易經解盤服務</p>
-                <a href="https://calendly.com/garylogy" class="cta-btn" target="_blank">預約 Gary 詳細解盤</a>
-                <a href="https://wa.me/6596556588" class="cta-btn wa-btn" target="_blank">WhatsApp 諮詢</a>
-                <button onclick="location.reload()" style="background: none; border: 1px solid #555; color: #555; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 20px;">重新起卦</button>
+                <a href="https://calendly.com/gary-ppw/30min" class="cta-btn" target="_blank">預約 Gary 詳細解盤</a>
+                <button id="waShareBtn" class="cta-btn wa-btn">WhatsApp 諮詢 + 分享卦象</button>
+                <div style="display:flex; gap:12px; justify-content:center; margin-top:16px; flex-wrap:wrap;">
+                    <button onclick="location.reload()" style="background:none;border:1px solid #555;color:#aaa;padding:10px 24px;border-radius:8px;cursor:pointer;font-size:0.9rem;">🔄 重新起卦</button>
+                    <a href="https://garylogy.org" style="background:none;border:1px solid #e8a020;color:#e8a020;padding:10px 24px;border-radius:8px;text-decoration:none;font-size:0.9rem;">🏠 返回主頁</a>
+                </div>
             </div>
         </div>
 
@@ -3673,7 +3676,239 @@ const LINE_TO_HEX = {
                 catWrap.appendChild(btn);
                 catWrap.appendChild(panel);
             });
+
+            // WhatsApp share button — include hex result
+            const waBtn = document.getElementById('waShareBtn');
+            if (waBtn) {
+                waBtn.onclick = function() {
+                    const hexNum  = document.getElementById('resNum').textContent.trim();
+                    const hexName = document.getElementById('resName').textContent.trim();
+                    const summary = document.getElementById('resSummary').textContent.trim();
+                    const loveEl  = document.querySelector('#secLove p');
+                    const carEl   = document.querySelector('#secCareer p');
+                    const advEl   = document.querySelector('#secAdvice p');
+                    const love    = loveEl  ? loveEl.textContent.trim()  : '';
+                    const career  = carEl   ? carEl.textContent.trim()   : '';
+                    const advice  = advEl   ? advEl.textContent.trim()   : '';
+
+                    const msg =
+`我剛在 GARYLOGY 網站卜了一卦 🀄
+
+【${hexNum} · ${hexName}】
+
+📊 總體運勢：
+${summary}
+
+❤️ 愛情缘分：
+${love}
+
+💼 事業發展：
+${career}
+
+🌿 古聖建議：
+${advice}
+
+想要Gary老師為我進行詳細解盤 🙏
+https://garylogy.org`;
+
+                    window.open('https://wa.me/6596556588?text=' + encodeURIComponent(msg), '_blank');
+                };
+            }
+
         }
     </script>
+
+<!-- ── GARYLOGY AI Chat Widget (divination page) ── -->
+<style>
+  #gary-chat-btn {
+    position: fixed; bottom: 28px; right: 28px; z-index: 9999;
+    width: 60px; height: 60px; border-radius: 50%; border: none; cursor: pointer;
+    background: linear-gradient(135deg, #d4a853, #b8860b);
+    box-shadow: 0 4px 20px rgba(212,168,83,0.5);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; transition: transform 0.2s, box-shadow 0.2s;
+  }
+  #gary-chat-btn:hover { transform: scale(1.1); box-shadow: 0 6px 28px rgba(212,168,83,0.7); }
+  #gary-chat-bubble {
+    position: fixed; bottom: 100px; right: 28px; z-index: 9998;
+    width: 340px; max-width: calc(100vw - 40px);
+    background: #151311; border: 1px solid #2e2a26; border-radius: 16px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+    display: none; flex-direction: column; overflow: hidden;
+    font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  }
+  #gary-chat-bubble.open { display: flex; }
+  #gary-chat-header {
+    background: linear-gradient(135deg, #1c1917, #2e2a26);
+    padding: 14px 16px; display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid #2e2a26;
+  }
+  #gary-chat-header .gcavatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: linear-gradient(135deg, #d4a853, #b8860b);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  #gary-chat-header .gcinfo .gcname { color: #faf7f2; font-size: 15px; font-weight: 600; }
+  #gary-chat-header .gcinfo .gcstatus { color: #d4a853; font-size: 11px; }
+  #gary-chat-close {
+    margin-left: auto; background: none; border: none; color: #a8a29e;
+    font-size: 20px; cursor: pointer; line-height: 1; padding: 4px;
+  }
+  #gary-chat-messages {
+    flex: 1; overflow-y: auto; padding: 14px 14px 8px;
+    display: flex; flex-direction: column; gap: 10px;
+    min-height: 220px; max-height: 320px;
+    scrollbar-width: thin; scrollbar-color: #2e2a26 transparent;
+  }
+  .gary-msg { display: flex; flex-direction: column; max-width: 85%; }
+  .gary-msg.gcbot { align-self: flex-start; }
+  .gary-msg.gcuser { align-self: flex-end; }
+  .gary-msg .gcbubble {
+    padding: 9px 13px; border-radius: 12px; font-size: 13.5px; line-height: 1.55;
+  }
+  .gary-msg.gcbot .gcbubble { background: #1c1917; color: #faf7f2; border-bottom-left-radius: 4px; }
+  .gary-msg.gcuser .gcbubble { background: linear-gradient(135deg, #d4a853, #b8860b); color: #0a0908; border-bottom-right-radius: 4px; }
+  .gary-typing2 { align-self: flex-start; }
+  .gary-typing2 .gcbubble { background: #1c1917; color: #a8a29e; font-size: 13px; padding: 9px 14px; border-radius: 12px; border-bottom-left-radius: 4px; }
+  #gary-chat-input-area {
+    display: flex; gap: 8px; padding: 10px 12px 12px;
+    border-top: 1px solid #2e2a26; background: #0a0908;
+  }
+  #gary-chat-input2 {
+    flex: 1; background: #1c1917; border: 1px solid #2e2a26; border-radius: 20px;
+    padding: 9px 14px; color: #faf7f2; font-size: 13px; outline: none;
+    font-family: inherit;
+  }
+  #gary-chat-input2::placeholder { color: #57534e; }
+  #gary-chat-input2:focus { border-color: #d4a853; }
+  #gary-chat-send2 {
+    background: linear-gradient(135deg, #d4a853, #b8860b); border: none;
+    border-radius: 50%; width: 36px; height: 36px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; align-self: flex-end; margin-bottom: 1px;
+    transition: transform 0.15s;
+  }
+  #gary-chat-send2:hover { transform: scale(1.1); }
+  #gary-chat-send2 svg { width: 16px; height: 16px; fill: #0a0908; }
+  #gary-unread-dot2 {
+    position: absolute; top: 2px; right: 2px;
+    width: 14px; height: 14px; background: #c2410c; border-radius: 50%;
+    border: 2px solid #0a0908; display: none;
+  }
+</style>
+
+<div id="gary-chat-bubble">
+  <div id="gary-chat-header">
+    <div class="gcavatar">✦</div>
+    <div class="gcinfo">
+      <div class="gcname">Gary · GARYLOGY</div>
+      <div class="gcstatus">九运玄学顾问 · Online</div>
+    </div>
+    <button id="gary-chat-close" aria-label="Close">×</button>
+  </div>
+  <div id="gary-chat-messages"></div>
+  <div id="gary-chat-input-area">
+    <input id="gary-chat-input2" type="text" placeholder="问Gary任何问题..." maxlength="300" />
+    <button id="gary-chat-send2" aria-label="Send">
+      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+    </button>
+  </div>
+</div>
+
+<button id="gary-chat-btn" aria-label="Chat with Gary" style="position:fixed;">
+  ✦
+  <span id="gary-unread-dot2"></span>
+</button>
+
+<script>
+(function() {
+  const BOT_URL = 'https://web-production-244d4.up.railway.app/test';
+  const btn       = document.getElementById('gary-chat-btn');
+  const bubble    = document.getElementById('gary-chat-bubble');
+  const closeBtn2 = document.getElementById('gary-chat-close');
+  const messagesEl = document.getElementById('gary-chat-messages');
+  const input2    = document.getElementById('gary-chat-input2');
+  const sendBtn2  = document.getElementById('gary-chat-send2');
+  const unreadDot2 = document.getElementById('gary-unread-dot2');
+
+  let isOpen2 = false;
+  let sessionId2 = 'web_' + Math.random().toString(36).substr(2, 9);
+  let greeted2 = false;
+
+  function toggleChat2() {
+    isOpen2 = !isOpen2;
+    bubble.classList.toggle('open', isOpen2);
+    unreadDot2.style.display = 'none';
+    if (isOpen2 && !greeted2) {
+      greeted2 = true;
+      setTimeout(() => sendToBot2('你好'), 400);
+    }
+    if (isOpen2) input2.focus();
+  }
+
+  function appendMsg2(text, role) {
+    const wrap = document.createElement('div');
+    wrap.className = 'gary-msg ' + role;
+    const b = document.createElement('div');
+    b.className = 'gcbubble';
+    b.textContent = text;
+    wrap.appendChild(b);
+    messagesEl.appendChild(wrap);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return wrap;
+  }
+
+  function showTyping2() {
+    const wrap = document.createElement('div');
+    wrap.className = 'gary-typing2';
+    wrap.id = 'gary-typing-indicator2';
+    wrap.innerHTML = '<div class="gcbubble">Gary 正在输入…</div>';
+    messagesEl.appendChild(wrap);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function removeTyping2() {
+    const t = document.getElementById('gary-typing-indicator2');
+    if (t) t.remove();
+  }
+
+  async function sendToBot2(userMsg) {
+    if (userMsg && userMsg !== '你好') appendMsg2(userMsg, 'gcuser');
+    showTyping2();
+    try {
+      const url = BOT_URL + '?phone=' + encodeURIComponent(sessionId2) + '&msg=' + encodeURIComponent(userMsg);
+      const res = await fetch(url);
+      const data = await res.json();
+      removeTyping2();
+      appendMsg2(data.reply || '不好意思，请再说一遍 😊', 'gcbot');
+      if (!isOpen2) unreadDot2.style.display = 'block';
+    } catch(e) {
+      removeTyping2();
+      appendMsg2('网络有点问题，请稍后再试 🙏', 'gcbot');
+    }
+  }
+
+  function handleSend2() {
+    const msg = input2.value.trim();
+    if (!msg) return;
+    input2.value = '';
+    sendToBot2(msg);
+  }
+
+  btn.addEventListener('click', toggleChat2);
+  closeBtn2.addEventListener('click', toggleChat2);
+  sendBtn2.addEventListener('click', handleSend2);
+  input2.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend2(); }
+  });
+
+  setTimeout(() => {
+    if (!isOpen2 && !greeted2) unreadDot2.style.display = 'block';
+  }, 8000);
+})();
+</script>
+<!-- ── End Chat Widget ── -->
+
 </body>
 </html>
