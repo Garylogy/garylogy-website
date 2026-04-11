@@ -490,7 +490,7 @@
                     <ul>
                         <li>準備六枚銅錢（或者用六枚硬幣代替）。</li>
                         <li>在心中默想您要諮詢的事情。</li>
-                        <li>雙手合十，將銅錢放在手心（或放入龜殼內）。</li>
+                        <li>將六枚銅錢握在手心，或放入龜殼內，誠心默想所問之事。</li>
                         <li>搖晃龜殼六次以上，誠心祈禱。</li>
                         <li>按下“擲出”按鈕，獲得卦象。</li>
                     </ul>
@@ -3479,10 +3479,7 @@ const LINE_TO_HEX = {
             lastY = e.clientY;
         }
 
-        function endShake() {
-            isDragging = false;
-            shell.style.transform = 'translate(0, 0) rotate(0deg)';
-        }
+        // endShake replaced by doThrow logic above
 
         function updateProgress() {
             const p = Math.min((shakeCount / MAX_SHAKES) * 100, 100);
@@ -3499,50 +3496,91 @@ const LINE_TO_HEX = {
             // Placeholder for audio
         }
 
-        // Throwing Logic
+        // ── Auto-throw on mouse/touch release ───────────────────────────────
+        let thrown = false;
         const coinsLayer = document.getElementById('coinsLayer');
-        throwBtn.addEventListener('click', () => {
-            throwBtn.style.display = 'none';
-            label.textContent = "已擲出";
+
+        function doThrow() {
+            if (thrown) return;
+            thrown = true;
+            isDragging = false;
+            shell.style.transform = 'translate(0,0) rotate(0deg)';
+            if (throwBtn) throwBtn.style.display = 'none';
+            label.textContent = "已擲出 ✨";
             coinsLayer.style.display = 'block';
-            
+
             const results = [];
             for (let i = 0; i < 6; i++) {
                 const isYang = Math.random() > 0.5;
                 results.push(isYang ? 1 : 0);
-                createCoin(i, isYang);
+                spawnCoin(i, isYang);
             }
-            
-            setTimeout(() => {
-                showResult(results);
-            }, 1500);
-        });
+            setTimeout(() => { showResult(results); }, 2200);
+        }
 
-        function createCoin(index, isYang) {
+        // Override endShake to auto-throw after enough shaking
+        function endShake() {
+            if (!isDragging) return;
+            isDragging = false;
+            shell.style.transform = 'translate(0,0) rotate(0deg)';
+            if (shakeCount >= MAX_SHAKES && !thrown) {
+                doThrow();
+            }
+        }
+
+        // Also allow button click if visible
+        if (throwBtn) throwBtn.addEventListener('click', doThrow);
+
+        function spawnCoin(index, isYang) {
             const coin = document.createElement('div');
             coin.className = 'coin';
-            coin.style.left = '50%';
-            coin.style.top = '50%';
-            coin.style.transform = 'translate(-50%, -50%) scale(0)';
-            
+
+            // Label: yang=乾隆通寶 (gold), yin=坤順厚載 (dark)
+            const topLabel    = isYang ? '乾' : '坤';
+            const bottomLabel = isYang ? '隆' : '順';
+            const leftLabel   = isYang ? '通' : '厚';
+            const rightLabel  = isYang ? '寶' : '載';
+
             coin.innerHTML = `
-                <span class="coin-text text-top">乾</span>
-                <span class="coin-text text-bottom">隆</span>
-                <span class="coin-text text-left">通</span>
-                <span class="coin-text text-right">寶</span>
+                <span class="coin-text text-top">${topLabel}</span>
+                <span class="coin-text text-bottom">${bottomLabel}</span>
+                <span class="coin-text text-left">${leftLabel}</span>
+                <span class="coin-text text-right">${rightLabel}</span>
+                <span style="position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);
+                    font-size:0.65rem;color:${isYang ? '#e8a020' : '#888'};white-space:nowrap;font-weight:bold;">
+                    ${isYang ? '陽 ——' : '陰 — —'} 第${index+1}爻
+                </span>
             `;
-            
+
+            // Start from center of shell
+            coin.style.left = '50%';
+            coin.style.top  = '50%';
+            coin.style.transform = 'translate(-50%,-50%) scale(0) rotate(720deg)';
+            coin.style.transition = 'none';
             coinsLayer.appendChild(coin);
-            
-            // Animate to position
+
+            // Animate: first spin outward, then settle into vertical column
             setTimeout(() => {
-                const finalX = (Math.random() - 0.5) * 200;
-                const finalY = 150 - (index * 60); // Line up vertically
-                coin.style.transform = `translate(calc(-50% + ${finalX}px), calc(-50% + ${finalY}px)) rotate(${Math.random()*360}deg) scale(1)`;
-                coin.style.background = isYang ? 'radial-gradient(circle, #d4af37 0%, #8a6d3b 100%)' : '#444';
-                coin.style.color = isYang ? '#3d2b1f' : '#888';
-                if (!isYang) coin.style.borderColor = '#222';
-            }, index * 100);
+                coin.style.transition = `transform 0.5s ease-out, background 0.3s`;
+                // Scatter burst
+                const burstX = (Math.random() - 0.5) * 180;
+                const burstY = (Math.random() - 0.5) * 120;
+                coin.style.transform = `translate(calc(-50% + ${burstX}px), calc(-50% + ${burstY}px)) scale(1.1) rotate(${Math.random()*360}deg)`;
+                coin.style.background = isYang
+                    ? 'radial-gradient(circle at 35% 35%, #f5d060 0%, #c8922a 50%, #7a5010 100%)'
+                    : 'radial-gradient(circle at 35% 35%, #666 0%, #333 60%, #111 100%)';
+                coin.style.borderColor = isYang ? '#e8a020' : '#444';
+                coin.style.color = isYang ? '#3d2b1f' : '#777';
+            }, index * 120 + 50);
+
+            // Settle into vertical column (centered, spaced 70px apart)
+            setTimeout(() => {
+                coin.style.transition = `transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)`;
+                // Column: index 0 = bottom yao, index 5 = top yao
+                // Center the column: 6 coins × 70px = 420px total, so offset = -210 + 35 = -175 from center
+                const colY = 175 - (index * 70); // index 0 at bottom (+175), index 5 at top (-175)
+                coin.style.transform = `translate(-50%, calc(-50% + ${colY}px)) scale(1) rotate(0deg)`;
+            }, index * 120 + 600);
         }
 
         function showResult(lines) {
@@ -3570,14 +3608,27 @@ const LINE_TO_HEX = {
                 linesContainer.appendChild(div);
             });
 
-            // 诸事总结
-            document.getElementById('resSummary').textContent = data.summary || '';
+            // 诸事总结 — use PDF summary or fallback to 时运+运势 from CAT_DATA
+            const summary = data.summary && data.summary.trim()
+                ? data.summary
+                : `【${data.name}】${catData['时运'] || ''} ${catData['运势'] || ''}`;
+            document.getElementById('resSummary').textContent = summary;
 
-            // Collapsible sections: 爱情缘分, 事业发展, 古圣建议
+            // Collapsible sections — fallback to CAT_DATA fields
+            const loveText = (data.love && data.love.trim())
+                ? data.love
+                : catData['婚恋'] || catData['爱情'] || '此卦感情顺遂，缘分自来，以诚相待，感情日渐深厚。';
+            const careerText = (data.career && data.career.trim())
+                ? data.career
+                : `事业：${catData['事业'] || ''} 经商：${catData['经商'] || ''}`;
+            const adviceText = (data.advice && data.advice.trim())
+                ? data.advice
+                : `${catData['决策'] || ''} ${catData['改行'] ? '改行建议：' + catData['改行'] : ''}`;
+
             const sections = [
-                { id: 'secLove',   title: '爱情缘分', text: data.love    || '' },
-                { id: 'secCareer', title: '事业发展', text: data.career  || '' },
-                { id: 'secAdvice', title: '古圣建议', text: data.advice  || '' },
+                { id: 'secLove',   title: '爱情缘分', text: loveText   },
+                { id: 'secCareer', title: '事业发展', text: careerText },
+                { id: 'secAdvice', title: '古圣建议', text: adviceText },
             ];
             sections.forEach(({ id, title, text }) => {
                 const sec = document.getElementById(id);
