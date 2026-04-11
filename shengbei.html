@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>抛圣杯 · GARYLOGY</title>
+<style>
+:root {
+  --gold: #e8a020;
+  --red:  #c41e3a;
+  --bg:   #050208;
+  --card: #0d0510;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: #f0e8d0;
+  font-family: 'PingFang SC','Microsoft YaHei',sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── TOP NAV ── */
+.top-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 24px;
+  background: rgba(5,2,8,0.95);
+  border-bottom: 1px solid #2a1a00;
+  position: sticky; top: 0; z-index: 100;
+}
+.top-nav .logo { color: var(--gold); font-size: 1.1rem; font-weight: 700; text-decoration: none; }
+.top-nav .nav-links { display: flex; gap: 14px; }
+.top-nav .nav-links a {
+  color: #bbb; text-decoration: none; font-size: 0.85rem;
+  padding: 6px 12px; border-radius: 6px; border: 1px solid transparent;
+  transition: all 0.2s;
+}
+.top-nav .nav-links a:hover { border-color: var(--gold); color: var(--gold); }
+.top-nav .nav-links a.active { border-color: var(--gold); color: var(--gold); background: rgba(232,160,32,0.1); }
+
+/* ── PAGE TITLE ── */
+.page-hero {
+  text-align: center; padding: 40px 20px 20px;
+}
+.page-hero h1 { font-size: 2.2rem; color: var(--gold); letter-spacing: 0.1em; margin-bottom: 8px; }
+.page-hero p  { color: #c0a870; font-size: 0.95rem; line-height: 1.7; }
+
+/* ── INSTRUCTIONS ── */
+.instructions {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+  max-width: 860px; margin: 0 auto 30px; padding: 0 20px;
+}
+@media(max-width:600px){ .instructions { grid-template-columns: 1fr; } }
+.inst-box {
+  background: var(--card); border: 1px solid #2a1a00; border-radius: 12px;
+  padding: 20px;
+}
+.inst-box h3 { color: var(--gold); font-size: 1rem; margin-bottom: 12px; }
+.inst-box ol, .inst-box ul { padding-left: 18px; }
+.inst-box li { color: #d0c0a0; font-size: 0.88rem; line-height: 1.8; }
+.inst-box.notice li { color: #f0b040; }
+
+/* ── DEITY PICKER ── */
+#deitySection {
+  max-width: 860px; margin: 0 auto 30px; padding: 0 20px;
+}
+#deitySection h2 { color: var(--gold); font-size: 1.1rem; margin-bottom: 16px; text-align: center; }
+.deity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 14px;
+}
+.deity-card {
+  background: var(--card); border: 2px solid #2a1a00; border-radius: 12px;
+  padding: 18px 10px 14px; text-align: center; cursor: pointer;
+  transition: all 0.25s; user-select: none;
+}
+.deity-card:hover { border-color: var(--gold); transform: translateY(-3px); }
+.deity-card.selected { border-color: var(--gold); background: rgba(232,160,32,0.12); box-shadow: 0 0 18px rgba(232,160,32,0.3); }
+.deity-card .deity-icon { font-size: 2.8rem; margin-bottom: 8px; display: block; }
+.deity-card .deity-name { font-size: 0.85rem; color: #e0c080; font-weight: 600; }
+.deity-card .deity-domain { font-size: 0.72rem; color: #907050; margin-top: 3px; }
+
+/* ── QUESTION INPUT ── */
+#questionSection {
+  max-width: 600px; margin: 0 auto 30px; padding: 0 20px; display: none;
+}
+#questionSection h2 { color: var(--gold); text-align: center; margin-bottom: 14px; font-size: 1rem; }
+.question-box {
+  background: var(--card); border: 1px solid #3a2a00; border-radius: 12px; padding: 20px;
+}
+.question-box textarea {
+  width: 100%; background: #0a0608; border: 1px solid #3a2a00; border-radius: 8px;
+  color: #f0e0c0; padding: 12px; font-size: 0.95rem; font-family: inherit;
+  resize: none; outline: none; line-height: 1.7;
+}
+.question-box textarea:focus { border-color: var(--gold); }
+.start-btn {
+  display: block; width: 100%; margin-top: 14px;
+  background: linear-gradient(135deg, #e8a020, #b87010);
+  border: none; border-radius: 10px; color: #000;
+  font-size: 1.05rem; font-weight: 700; padding: 14px;
+  cursor: pointer; transition: all 0.2s; letter-spacing: 0.05em;
+}
+.start-btn:hover { transform: scale(1.02); box-shadow: 0 4px 20px rgba(232,160,32,0.4); }
+.start-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* ── RITUAL AREA ── */
+#ritualSection {
+  max-width: 600px; margin: 0 auto 40px; padding: 0 20px; display: none;
+}
+.deity-display {
+  text-align: center; margin-bottom: 20px;
+}
+.deity-display .big-icon { font-size: 4rem; }
+.deity-display .deity-label { color: var(--gold); font-size: 1.1rem; margin-top: 6px; }
+.deity-display .question-preview {
+  color: #c0a870; font-size: 0.85rem; margin-top: 6px;
+  background: var(--card); padding: 10px 16px; border-radius: 8px;
+  border: 1px solid #2a1a00;
+}
+
+/* ── CUPS ── */
+.cups-area {
+  display: flex; justify-content: center; gap: 50px; margin: 30px 0; align-items: flex-end;
+}
+.cup-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.cup-label { font-size: 0.78rem; color: #907050; }
+/* CSS half-moon cup */
+.cup {
+  width: 70px; height: 50px;
+  position: relative; cursor: pointer;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.6));
+  transition: transform 0.15s;
+}
+.cup:active { transform: scale(0.95); }
+.cup .cup-body {
+  width: 70px; height: 50px;
+  background: radial-gradient(ellipse at 40% 30%, #c8922a 0%, #7a4f10 50%, #3d2508 100%);
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  position: relative; overflow: hidden;
+}
+.cup .cup-body::after {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(135deg, rgba(255,220,120,0.3) 0%, transparent 50%, rgba(0,0,0,0.4) 100%);
+  border-radius: inherit;
+}
+.cup .cup-flat {
+  width: 70px; height: 10px;
+  background: linear-gradient(180deg, #3d2508 0%, #5a3810 100%);
+  border-radius: 50%;
+}
+/* Yin cup (flat side up) */
+.cup.yin .cup-body { transform: rotateX(180deg); }
+.cup.yin .cup-flat { background: linear-gradient(180deg, #8a6030 0%, #6a4020 100%); }
+
+/* Cup state indicator */
+.cup-state {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; font-weight: bold;
+  border: 2px solid #333;
+}
+.cup-state.yang { background: #e8a020; color: #000; border-color: #e8a020; }
+.cup-state.yin  { background: #333; color: #888; border-color: #555; }
+
+/* Throw button */
+.throw-btn {
+  display: block; width: 100%; margin: 10px 0 20px;
+  background: linear-gradient(135deg, #8a2030, #c41e3a);
+  border: none; border-radius: 10px; color: #fff;
+  font-size: 1.1rem; font-weight: 700; padding: 16px;
+  cursor: pointer; transition: all 0.2s; letter-spacing: 0.08em;
+  box-shadow: 0 4px 20px rgba(196,30,58,0.4);
+}
+.throw-btn:hover { transform: scale(1.02); box-shadow: 0 6px 28px rgba(196,30,58,0.6); }
+.throw-btn:active { transform: scale(0.98); }
+
+/* ── PROGRESS TRACKER ── */
+.progress-track {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin: 10px 0 20px;
+}
+.round-dot {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 2px solid #333; display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; color: #555; transition: all 0.4s;
+}
+.round-dot.sheng { border-color: #e8a020; background: rgba(232,160,32,0.2); color: var(--gold); }
+.round-dot.xiao  { border-color: #aaa; background: rgba(200,200,200,0.1); color: #ccc; }
+.round-dot.nu    { border-color: #c41e3a; background: rgba(196,30,58,0.15); color: var(--red); }
+.round-sep { color: #333; font-size: 1.2rem; }
+
+/* ── RESULT POP ── */
+.result-pop {
+  text-align: center; margin: 20px 0; padding: 24px 20px;
+  border-radius: 14px; animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+.result-pop.sheng { background: rgba(232,160,32,0.15); border: 2px solid var(--gold); }
+.result-pop.xiao  { background: rgba(180,180,180,0.1); border: 2px solid #888; }
+.result-pop.nu    { background: rgba(196,30,58,0.15); border: 2px solid var(--red); }
+.result-pop .big-result { font-size: 2rem; font-weight: 900; margin-bottom: 8px; }
+.result-pop.sheng .big-result { color: var(--gold); }
+.result-pop.xiao  .big-result { color: #ccc; }
+.result-pop.nu    .big-result { color: var(--red); }
+.result-pop p { color: #c0a870; font-size: 0.9rem; line-height: 1.7; }
+
+/* ── FINAL VERDICT ── */
+.final-verdict {
+  text-align: center; padding: 30px 24px; margin: 20px 0;
+  background: var(--card); border-radius: 16px;
+  border: 2px solid var(--gold);
+  box-shadow: 0 0 30px rgba(232,160,32,0.2);
+  animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1);
+}
+.final-verdict .verdict-icon { font-size: 3.5rem; margin-bottom: 12px; }
+.final-verdict h2 { color: var(--gold); font-size: 1.5rem; margin-bottom: 10px; }
+.final-verdict p  { color: #d0c0a0; line-height: 1.8; margin-bottom: 16px; }
+.final-verdict .verdict-sub { font-size: 0.85rem; color: #907050; }
+.action-btns {
+  display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 20px;
+}
+.action-btns a, .action-btns button {
+  padding: 10px 20px; border-radius: 8px; font-size: 0.9rem;
+  cursor: pointer; text-decoration: none; font-family: inherit;
+  transition: all 0.2s;
+}
+.btn-gold {
+  background: linear-gradient(135deg, #e8a020, #b87010);
+  border: none; color: #000; font-weight: 700;
+}
+.btn-wa { background: #25D366; border: none; color: #fff; font-weight: 600; }
+.btn-outline { background: none; border: 1px solid var(--gold); color: var(--gold); }
+.btn-home { background: none; border: 1px solid #555; color: #aaa; }
+.action-btns a:hover, .action-btns button:hover { transform: translateY(-2px); opacity: 0.9; }
+
+/* ── STATUS LABEL ── */
+.status-label {
+  text-align: center; font-size: 0.9rem; color: #c0a870; min-height: 28px;
+  margin: 6px 0;
+}
+
+/* ── ROUND LOG ── */
+.round-log {
+  margin: 16px 0;
+}
+.round-log-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px; border-radius: 8px; margin-bottom: 6px;
+  font-size: 0.85rem;
+}
+.round-log-item.sheng { background: rgba(232,160,32,0.1); color: var(--gold); border-left: 3px solid var(--gold); }
+.round-log-item.xiao  { background: rgba(200,200,200,0.05); color: #aaa; border-left: 3px solid #666; }
+.round-log-item.nu    { background: rgba(196,30,58,0.1); color: #e06070; border-left: 3px solid var(--red); }
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.7); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes shake {
+  0%,100% { transform: translateX(0) rotate(0deg); }
+  20%      { transform: translateX(-8px) rotate(-8deg); }
+  40%      { transform: translateX(8px) rotate(8deg); }
+  60%      { transform: translateX(-6px) rotate(-5deg); }
+  80%      { transform: translateX(6px) rotate(5deg); }
+}
+@keyframes flip {
+  0%   { transform: rotateY(0deg) scale(1); }
+  50%  { transform: rotateY(90deg) scale(1.2); }
+  100% { transform: rotateY(0deg) scale(1); }
+}
+.cup.throwing { animation: shake 0.5s ease; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="top-nav">
+  <a href="https://garylogy.org" class="logo">✦ GARYLOGY</a>
+  <div class="nav-links">
+    <a href="https://garylogy.org">主页</a>
+    <a href="/divination.html">易经卜卦</a>
+    <a href="/shengbei.html" class="active">抛圣杯</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="page-hero">
+  <h1>🌙 抛圣杯</h1>
+  <p>选择您所供奉的神明，诚心默祷，掷杯请示神意。<br>连续三次圣杯，方为神明明确指引。</p>
+</div>
+
+<!-- INSTRUCTIONS -->
+<div class="instructions">
+  <div class="inst-box">
+    <h3>🕯️ 卜卦方法</h3>
+    <ol>
+      <li>选择您所供奉或信仰的神明。</li>
+      <li>心中默念自己的姓名、生辰及所居住地区。</li>
+      <li>在心中或输入框内清楚说明想询问的事情（一次询问一件事）。</li>
+      <li>点击"掷杯"按钮，系统会随机模拟两块圣杯的落点。</li>
+      <li>需连续掷出三次圣杯（一阴一阳），才算神明明确应允。</li>
+    </ol>
+  </div>
+  <div class="inst-box notice">
+    <h3>⚠️ 注意事项</h3>
+    <ul>
+      <li>不可亵渎神明，须以虔诚之心。</li>
+      <li>一次只能问一件事，相同的事短时间内不能重复起卦。</li>
+      <li>卜卦时需专心，不能分心。</li>
+      <li>不能掷到一半有事情停止。</li>
+      <li>切记不要猜疑、不要贪婪、不要恐惧。</li>
+      <li>只能预测未来，不能卜卦过去的事情。</li>
+    </ul>
+  </div>
+</div>
+
+<!-- STEP 1: DEITY PICKER -->
+<div id="deitySection">
+  <h2>第一步 · 选择您所信奉的神明</h2>
+  <div class="deity-grid" id="deityGrid"></div>
+</div>
+
+<!-- STEP 2: QUESTION -->
+<div id="questionSection">
+  <h2>第二步 · 说明所问之事</h2>
+  <div class="question-box">
+    <div id="selectedDeityInfo" style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 14px;background:#0a0608;border-radius:8px;border:1px solid #2a1a00;">
+      <span id="sdIcon" style="font-size:2rem;"></span>
+      <div>
+        <div id="sdName" style="color:var(--gold);font-weight:700;"></div>
+        <div id="sdDomain" style="color:#907050;font-size:0.8rem;"></div>
+      </div>
+    </div>
+    <textarea id="questionInput" rows="3" placeholder="例：今年事业能否顺利晋升？请神明指引。"></textarea>
+    <button class="start-btn" id="startRitualBtn" onclick="startRitual()">开始执交 🌙</button>
+  </div>
+</div>
+
+<!-- STEP 3: RITUAL -->
+<div id="ritualSection">
+  <div class="deity-display">
+    <div class="big-icon" id="ritualIcon"></div>
+    <div class="deity-label" id="ritualName"></div>
+    <div class="question-preview" id="ritualQuestion"></div>
+  </div>
+
+  <!-- Progress tracker: need 3 consecutive 圣杯 -->
+  <div style="text-align:center;margin-bottom:8px;color:#907050;font-size:0.82rem;">连续圣杯进度（需 3 次）</div>
+  <div class="progress-track" id="progressTrack">
+    <div class="round-dot" id="dot0">1</div>
+    <div class="round-sep">›</div>
+    <div class="round-dot" id="dot1">2</div>
+    <div class="round-sep">›</div>
+    <div class="round-dot" id="dot2">3</div>
+  </div>
+
+  <!-- Two cups -->
+  <div class="cups-area">
+    <div class="cup-wrap">
+      <div class="cup" id="cup1">
+        <div class="cup-body"></div>
+        <div class="cup-flat"></div>
+      </div>
+      <div class="cup-state" id="cs1">?</div>
+      <div class="cup-label">第一杯</div>
+    </div>
+    <div class="cup-wrap">
+      <div class="cup" id="cup2">
+        <div class="cup-body"></div>
+        <div class="cup-flat"></div>
+      </div>
+      <div class="cup-state" id="cs2">?</div>
+      <div class="cup-label">第二杯</div>
+    </div>
+  </div>
+
+  <div class="status-label" id="statusLabel">诚心默想所问之事，然后掷杯请示神明。</div>
+
+  <button class="throw-btn" id="throwBtn" onclick="throwCups()">🙏 掷杯</button>
+
+  <!-- Round result popup -->
+  <div id="roundResult" style="display:none;"></div>
+
+  <!-- Round log -->
+  <div class="round-log" id="roundLog"></div>
+
+  <!-- Final verdict -->
+  <div id="finalVerdict" style="display:none;"></div>
+
+  <!-- Reset -->
+  <div style="text-align:center;margin-top:14px;">
+    <button onclick="resetAll()" style="background:none;border:1px solid #333;color:#666;padding:8px 20px;border-radius:8px;cursor:pointer;font-size:0.85rem;">🔄 重新开始</button>
+    <a href="https://garylogy.org" style="background:none;border:1px solid #444;color:#888;padding:8px 20px;border-radius:8px;text-decoration:none;font-size:0.85rem;margin-left:10px;">🏠 返回主页</a>
+  </div>
+</div>
+
+<div style="height:80px;"></div>
+
+<!-- ── CHAT WIDGET ── -->
+<style>
+  #gc2-btn {
+    position:fixed;bottom:28px;right:28px;z-index:9999;
+    width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;
+    background:linear-gradient(135deg,#d4a853,#b8860b);
+    box-shadow:0 4px 20px rgba(212,168,83,0.5);
+    font-size:22px;color:#0a0908;transition:transform 0.2s;
+  }
+  #gc2-btn:hover{transform:scale(1.1);}
+  #gc2-bubble{
+    position:fixed;bottom:96px;right:28px;z-index:9998;
+    width:330px;max-width:calc(100vw - 40px);
+    background:#151311;border:1px solid #2e2a26;border-radius:16px;
+    box-shadow:0 8px 40px rgba(0,0,0,0.6);
+    display:none;flex-direction:column;overflow:hidden;
+    font-family:inherit;
+  }
+  #gc2-bubble.open{display:flex;}
+  #gc2-header{background:linear-gradient(135deg,#1c1917,#2e2a26);padding:12px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #2e2a26;}
+  #gc2-header .av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#d4a853,#b8860b);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+  .gcinfo2 .gcname{color:#faf7f2;font-size:14px;font-weight:600;}
+  .gcinfo2 .gcstat{color:#d4a853;font-size:11px;}
+  #gc2-close{margin-left:auto;background:none;border:none;color:#a8a29e;font-size:20px;cursor:pointer;}
+  #gc2-msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;min-height:200px;max-height:300px;}
+  .gm{display:flex;flex-direction:column;max-width:85%;}
+  .gm.bot{align-self:flex-start;}.gm.user{align-self:flex-end;}
+  .gm .gb{padding:8px 12px;border-radius:12px;font-size:13px;line-height:1.5;}
+  .gm.bot .gb{background:#1c1917;color:#faf7f2;border-bottom-left-radius:4px;}
+  .gm.user .gb{background:linear-gradient(135deg,#d4a853,#b8860b);color:#0a0908;border-bottom-right-radius:4px;}
+  .gtyping{align-self:flex-start;}.gtyping .gb{background:#1c1917;color:#a8a29e;font-size:12px;padding:8px 12px;border-radius:12px;border-bottom-left-radius:4px;}
+  #gc2-footer{display:flex;gap:8px;padding:8px 10px 10px;border-top:1px solid #2e2a26;background:#0a0908;}
+  #gc2-input{flex:1;background:#1c1917;border:1px solid #2e2a26;border-radius:20px;padding:8px 14px;color:#faf7f2;font-size:13px;outline:none;font-family:inherit;}
+  #gc2-input:focus{border-color:#d4a853;}
+  #gc2-send{background:linear-gradient(135deg,#d4a853,#b8860b);border:none;border-radius:50%;width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;align-self:flex-end;}
+  #gc2-send svg{width:14px;height:14px;fill:#0a0908;}
+  #gc2-dot{position:absolute;top:2px;right:2px;width:12px;height:12px;background:#c2410c;border-radius:50%;border:2px solid #050208;display:none;}
+</style>
+
+<div id="gc2-bubble">
+  <div id="gc2-header">
+    <div class="av">✦</div>
+    <div class="gcinfo2"><div class="gcname">Gary · GARYLOGY</div><div class="gcstat">九运玄学顾问 · Online</div></div>
+    <button id="gc2-close">×</button>
+  </div>
+  <div id="gc2-msgs"></div>
+  <div id="gc2-footer">
+    <input id="gc2-input" type="text" placeholder="问Gary任何问题..." maxlength="300"/>
+    <button id="gc2-send"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
+  </div>
+</div>
+<button id="gc2-btn" style="position:fixed;">✦<span id="gc2-dot"></span></button>
+
+<script>
+// ══════════════════════════════════════════════
+//  DEITIES
+// ══════════════════════════════════════════════
+const DEITIES = [
+  { icon:'🕊️', name:'观世音菩萨', domain:'慈悲·保平安', blessing:'菩萨慈悲，护佑善信' },
+  { icon:'🐉', name:'关圣帝君',   domain:'忠义·财运·事业', blessing:'关帝显灵，义利双全' },
+  { icon:'🌊', name:'妈祖圣母',   domain:'出行·平安·保护', blessing:'妈祖庇佑，一路平安' },
+  { icon:'💰', name:'财神爷',     domain:'财运·生意·富贵', blessing:'财神赐福，财源广进' },
+  { icon:'🌳', name:'土地公',     domain:'家宅·田产·福气', blessing:'土地公护佑，家宅平安' },
+  { icon:'🌙', name:'月老星君',   domain:'婚恋·缘分·感情', blessing:'月老牵线，良缘天定' },
+  { icon:'⚡', name:'玉皇大帝',   domain:'总管·大事·国运', blessing:'天帝垂慈，万事顺遂' },
+  { icon:'📿', name:'地藏王菩萨', domain:'消灾·解厄·护法', blessing:'地藏大愿，消灾解厄' },
+  { icon:'🌺', name:'太岁星君',   domain:'流年·犯太岁·转运', blessing:'太岁护佑，转运平安' },
+  { icon:'🎓', name:'文昌帝君',   domain:'学业·考试·功名', blessing:'文昌赐慧，金榜题名' },
+  { icon:'🏥', name:'保生大帝',   domain:'健康·疾病·医疗', blessing:'大帝保生，身体康泰' },
+  { icon:'🐯', name:'虎爷',       domain:'招财·驱邪·守护', blessing:'虎爷显威，驱邪纳福' },
+];
+
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+let selectedDeity = null;
+let consecutiveSheng = 0;  // consecutive 圣杯 count
+let totalRounds = 0;
+let done = false;
+
+// ══════════════════════════════════════════════
+//  RENDER DEITIES
+// ══════════════════════════════════════════════
+(function renderDeities() {
+  const grid = document.getElementById('deityGrid');
+  DEITIES.forEach((d, i) => {
+    const card = document.createElement('div');
+    card.className = 'deity-card';
+    card.innerHTML = `<span class="deity-icon">${d.icon}</span><div class="deity-name">${d.name}</div><div class="deity-domain">${d.domain}</div>`;
+    card.onclick = () => selectDeity(i, card);
+    grid.appendChild(card);
+  });
+})();
+
+function selectDeity(idx, card) {
+  document.querySelectorAll('.deity-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  selectedDeity = DEITIES[idx];
+  document.getElementById('sdIcon').textContent = selectedDeity.icon;
+  document.getElementById('sdName').textContent = selectedDeity.name;
+  document.getElementById('sdDomain').textContent = selectedDeity.domain;
+  document.getElementById('questionSection').style.display = 'block';
+  document.getElementById('questionSection').scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+// ══════════════════════════════════════════════
+//  START RITUAL
+// ══════════════════════════════════════════════
+function startRitual() {
+  const q = document.getElementById('questionInput').value.trim();
+  if (!selectedDeity) { alert('请先选择神明'); return; }
+
+  document.getElementById('ritualIcon').textContent = selectedDeity.icon;
+  document.getElementById('ritualName').textContent = selectedDeity.name;
+  document.getElementById('ritualQuestion').textContent = q ? `「${q}」` : '（心中默念所询之事）';
+
+  document.getElementById('deitySection').style.display = 'none';
+  document.getElementById('questionSection').style.display = 'none';
+  document.getElementById('ritualSection').style.display = 'block';
+  window.scrollTo({ top: document.getElementById('ritualSection').offsetTop - 20, behavior:'smooth' });
+  resetProgress();
+}
+
+// ══════════════════════════════════════════════
+//  THROW CUPS
+// ══════════════════════════════════════════════
+function throwCups() {
+  if (done) return;
+  totalRounds++;
+
+  // Animate cups
+  const c1 = document.getElementById('cup1');
+  const c2 = document.getElementById('cup2');
+  c1.classList.add('throwing');
+  c2.classList.add('throwing');
+  document.getElementById('throwBtn').disabled = true;
+  document.getElementById('statusLabel').textContent = '🌙 掷杯中…';
+  document.getElementById('roundResult').style.display = 'none';
+
+  setTimeout(() => {
+    c1.classList.remove('throwing');
+    c2.classList.remove('throwing');
+
+    // Random: 0=阴(yin), 1=阳(yang)
+    const r1 = Math.random() < 0.5 ? 1 : 0;
+    const r2 = Math.random() < 0.5 ? 1 : 0;
+
+    // Apply cup face
+    setCupFace(c1, document.getElementById('cs1'), r1);
+    setCupFace(c2, document.getElementById('cs2'), r2);
+
+    // Determine result
+    let result, cls;
+    if (r1 === 1 && r2 === 0 || r1 === 0 && r2 === 1) {
+      result = { type:'sheng', name:'🌙 圣杯', desc:'一阴一阳，神明应允，此问可行。' };
+      consecutiveSheng++;
+    } else if (r1 === 1 && r2 === 1) {
+      result = { type:'xiao', name:'😊 笑杯', desc:'两阳，神明微笑，时机未到或问题尚需明朗，请重新默想后再掷。' };
+      consecutiveSheng = 0;
+    } else {
+      result = { type:'nu', name:'⛔ 怒杯', desc:'两阴，神明不应，此事不宜或问法不当，请重新默念后再请示。' };
+      consecutiveSheng = 0;
+    }
+
+    // Log
+    addLog(totalRounds, result);
+    updateProgress();
+    showRoundResult(result);
+    document.getElementById('throwBtn').disabled = false;
+
+    // Check win
+    if (consecutiveSheng >= 3) {
+      done = true;
+      setTimeout(() => showFinalVerdict(), 600);
+    } else {
+      document.getElementById('statusLabel').textContent =
+        consecutiveSheng > 0
+          ? `已连续 ${consecutiveSheng} 次圣杯，还需 ${3 - consecutiveSheng} 次。`
+          : '请诚心再次默想，然后掷杯。';
+    }
+  }, 800);
+}
+
+function setCupFace(cupEl, stateEl, isYang) {
+  if (isYang) {
+    cupEl.classList.remove('yin');
+    stateEl.className = 'cup-state yang';
+    stateEl.textContent = '阳';
+  } else {
+    cupEl.classList.add('yin');
+    stateEl.className = 'cup-state yin';
+    stateEl.textContent = '阴';
+  }
+}
+
+function showRoundResult(res) {
+  const el = document.getElementById('roundResult');
+  el.innerHTML = `
+    <div class="result-pop ${res.type}">
+      <div class="big-result">${res.name}</div>
+      <p>${res.desc}</p>
+    </div>`;
+  el.style.display = 'block';
+}
+
+function addLog(round, res) {
+  const log = document.getElementById('roundLog');
+  const item = document.createElement('div');
+  item.className = `round-log-item ${res.type}`;
+  item.innerHTML = `<span>第 ${round} 掷</span><span>${res.name}</span><span style="flex:1;text-align:right;font-size:0.78rem;opacity:0.8;">连续圣杯：${consecutiveSheng}</span>`;
+  log.appendChild(item);
+}
+
+function updateProgress() {
+  for (let i = 0; i < 3; i++) {
+    const dot = document.getElementById('dot' + i);
+    dot.className = 'round-dot';
+    if (i < consecutiveSheng) dot.classList.add('sheng');
+  }
+}
+
+// ══════════════════════════════════════════════
+//  FINAL VERDICT
+// ══════════════════════════════════════════════
+function showFinalVerdict() {
+  document.getElementById('throwBtn').style.display = 'none';
+  document.getElementById('roundResult').style.display = 'none';
+  document.getElementById('statusLabel').textContent = '';
+
+  const q  = document.getElementById('ritualQuestion').textContent;
+  const d  = selectedDeity;
+  const waMsg = encodeURIComponent(
+`我刚在 GARYLOGY 网站进行了抛圣杯 🌙
+
+所问之事：${q}
+所请神明：${d.name}
+
+结果：连续三次圣杯 ✅
+神明应允：${d.blessing}
+
+想请Gary老师为我进一步解析神意 🙏
+https://garylogy.org`
+  );
+
+  document.getElementById('finalVerdict').innerHTML = `
+    <div class="final-verdict">
+      <div class="verdict-icon">${d.icon}</div>
+      <h2>神明已应允 ✨</h2>
+      <p><strong>${d.name}</strong>连续三次圣杯赐下神意：</p>
+      <p style="color:var(--gold);font-size:1.05rem;font-weight:700;">"${d.blessing}"</p>
+      <p class="verdict-sub">共掷 ${totalRounds} 次，连续三次圣杯。此事可行，放心去做，但仍需谨慎行事。</p>
+      <div class="action-btns">
+        <a href="https://calendly.com/gary-ppw/30min" target="_blank" class="btn-gold">预约 Gary 详细解析</a>
+        <a href="https://wa.me/6596556588?text=${waMsg}" target="_blank" class="btn-wa">WhatsApp 分享结果</a>
+        <button onclick="resetAll()" class="btn-outline">🔄 再问一事</button>
+        <a href="https://garylogy.org" class="btn-home">🏠 返回主页</a>
+      </div>
+    </div>`;
+  document.getElementById('finalVerdict').style.display = 'block';
+  document.getElementById('finalVerdict').scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+function resetProgress() {
+  consecutiveSheng = 0; totalRounds = 0; done = false;
+  document.getElementById('roundLog').innerHTML = '';
+  document.getElementById('roundResult').style.display = 'none';
+  document.getElementById('finalVerdict').style.display = 'none';
+  document.getElementById('throwBtn').style.display = 'block';
+  document.getElementById('throwBtn').disabled = false;
+  document.getElementById('statusLabel').textContent = '诚心默想所问之事，然后掷杯请示神明。';
+  ['cs1','cs2'].forEach(id => {
+    const el = document.getElementById(id);
+    el.className = 'cup-state'; el.textContent = '?';
+  });
+  ['cup1','cup2'].forEach(id => document.getElementById(id).classList.remove('yin'));
+  updateProgress();
+}
+
+function resetAll() {
+  resetProgress();
+  selectedDeity = null;
+  document.querySelectorAll('.deity-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('deitySection').style.display = 'block';
+  document.getElementById('questionSection').style.display = 'none';
+  document.getElementById('ritualSection').style.display = 'none';
+  document.getElementById('questionInput').value = '';
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+// ══════════════════════════════════════════════
+//  CHAT WIDGET
+// ══════════════════════════════════════════════
+(function() {
+  const BOT = 'https://web-production-244d4.up.railway.app/test';
+  const btn = document.getElementById('gc2-btn');
+  const bub = document.getElementById('gc2-bubble');
+  const cls = document.getElementById('gc2-close');
+  const msgs= document.getElementById('gc2-msgs');
+  const inp = document.getElementById('gc2-input');
+  const snd = document.getElementById('gc2-send');
+  const dot = document.getElementById('gc2-dot');
+  let open=false, greeted=false;
+  let sid='web_'+Math.random().toString(36).substr(2,9);
+
+  function toggle(){
+    open=!open; bub.classList.toggle('open',open); dot.style.display='none';
+    if(open&&!greeted){greeted=true;setTimeout(()=>ask('你好'),400);}
+    if(open) inp.focus();
+  }
+  function addMsg(t,r){
+    const w=document.createElement('div');w.className='gm '+r;
+    const b=document.createElement('div');b.className='gb';b.textContent=t;
+    w.appendChild(b);msgs.appendChild(w);msgs.scrollTop=msgs.scrollHeight;
+  }
+  function typing(on){
+    let t=document.getElementById('gtyping2');
+    if(on&&!t){t=document.createElement('div');t.id='gtyping2';t.className='gtyping';t.innerHTML='<div class="gb">Gary 正在输入…</div>';msgs.appendChild(t);msgs.scrollTop=msgs.scrollHeight;}
+    else if(!on&&t) t.remove();
+  }
+  async function ask(m){
+    if(m!=='你好') addMsg(m,'user');
+    typing(true);
+    try{
+      const r=await fetch(BOT+'?phone='+encodeURIComponent(sid)+'&msg='+encodeURIComponent(m));
+      const d=await r.json();typing(false);addMsg(d.reply||'请再说一遍 😊','bot');
+      if(!open) dot.style.display='block';
+    }catch{typing(false);addMsg('网络有点问题，请稍后再试 🙏','bot');}
+  }
+  function send(){const m=inp.value.trim();if(!m)return;inp.value='';ask(m);}
+  btn.addEventListener('click',toggle);cls.addEventListener('click',toggle);
+  snd.addEventListener('click',send);
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
+  setTimeout(()=>{if(!open&&!greeted)dot.style.display='block';},8000);
+})();
+</script>
+</body>
+</html>
