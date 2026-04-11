@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>易经卜卦 - Garylogy</title>
+    <style>
+        :root {
+            --bg-color: #0a0010;
+            --gold: #e8a020;
+            --dark-red: #c41e3a;
+            --text-color: #f0e6d2;
+            --accent: #d4af37;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        /* Screen Transitions */
+        .screen {
+            display: none;
+            animation: fadeIn 0.8s ease-in-out;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Landing Screen */
+        .landing h1 {
+            font-size: 3rem;
+            color: var(--gold);
+            margin-bottom: 20px;
+            text-shadow: 0 0 15px rgba(232, 160, 32, 0.5);
+            letter-spacing: 5px;
+        }
+
+        .intro-text {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 50px;
+            color: #bfa880;
+        }
+
+        .start-btn-container {
+            position: relative;
+            margin: 60px 0;
+        }
+
+        .turtle-shell {
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, #3d2b1f 0%, #1a110a 100%);
+            border: 4px solid var(--gold);
+            border-radius: 50% 50% 45% 45%;
+            margin: 0 auto;
+            cursor: pointer;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8), inset 0 0 20px rgba(232, 160, 32, 0.2);
+            transition: transform 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .turtle-shell:hover {
+            transform: scale(1.05);
+        }
+
+        .turtle-shell::after {
+            content: "起卦";
+            color: var(--gold);
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .shell-pattern {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* Question Input */
+        .question-screen h2 {
+            color: var(--gold);
+            margin-bottom: 30px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--gold);
+            border-radius: 8px;
+            color: var(--text-color);
+            padding: 15px;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            resize: none;
+        }
+
+        .btn {
+            background-color: var(--gold);
+            color: #000;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #ffcc66;
+            box-shadow: 0 0 20px var(--gold);
+        }
+
+        /* Animation Screen */
+        .animation-screen .status {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            color: var(--gold);
+        }
+
+        .coins-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 40px 0;
+            height: 100px;
+        }
+
+        .coin {
+            width: 60px;
+            height: 60px;
+            background: #d4af37;
+            border: 4px solid #b8860b;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #4a3c1e;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        .coin.spinning {
+            animation: spin 0.2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotateY(0deg); }
+            100% { transform: rotateY(180deg); }
+        }
+
+        .hexagram-building {
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .line-display {
+            width: 100px;
+            height: 12px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .line-display.show {
+            opacity: 1;
+        }
+
+        .line-solid {
+            width: 100%;
+            height: 100%;
+            background-color: var(--gold);
+        }
+
+        .line-broken {
+            width: 45%;
+            height: 100%;
+            background-color: var(--gold);
+        }
+
+        /* Result Screen */
+        .result-screen {
+            text-align: left;
+        }
+
+        .hex-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .hex-number {
+            font-size: 1.2rem;
+            color: var(--gold);
+            display: block;
+        }
+
+        .hex-name {
+            font-size: 2.5rem;
+            color: var(--gold);
+            margin: 10px 0;
+        }
+
+        .hex-visual {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            margin: 20px 0;
+        }
+
+        .hex-summary {
+            background: rgba(196, 30, 58, 0.1);
+            border-left: 4px solid var(--dark-red);
+            padding: 20px;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .detail-item {
+            border-bottom: 1px solid rgba(232, 160, 32, 0.2);
+            margin-bottom: 10px;
+        }
+
+        .detail-header {
+            padding: 15px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--gold);
+        }
+
+        .detail-content {
+            display: none;
+            padding: 0 0 15px 0;
+            line-height: 1.6;
+            color: #d1c4a9;
+        }
+
+        .detail-item.open .detail-content {
+            display: block;
+        }
+
+        .detail-item.open .chevron::after {
+            content: "▲";
+        }
+
+        .chevron::after {
+            content: "▼";
+            font-size: 0.8rem;
+        }
+
+        .actions {
+            margin-top: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .cta-gold {
+            background: linear-gradient(135deg, #e8a020 0%, #b8860b 100%);
+            color: #000;
+            text-decoration: none;
+            padding: 18px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(232, 160, 32, 0.3);
+        }
+
+        .cta-wa {
+            background-color: #25d366;
+            color: #fff;
+            text-decoration: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .restart {
+            margin-top: 20px;
+            color: var(--gold);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Landing Screen -->
+        <div id="landing" class="screen active landing">
+            <h1>易经卜卦</h1>
+            <p class="intro-text">
+                天行健，君子以自强不息。<br>
+                感悟千年智慧，探寻命运玄机。<br>
+                沉下心来，与古圣先贤进行跨越时空的对话。
+            </p>
+            <div class="start-btn-container">
+                <div class="turtle-shell" onclick="showScreen('question')"></div>
+            </div>
+        </div>
+
+        <!-- Question Screen -->
+        <div id="question" class="screen question-screen">
+            <h2>请输入您的困惑</h2>
+            <p style="margin-bottom: 20px; color: #bfa880;">请在心中默想您要询问的事情</p>
+            <textarea id="questionInput" placeholder="例如：事业发展、感情缘分、财运趋势..."></textarea>
+            <button class="btn" onclick="startDivination()">起卦求教</button>
+        </div>
+
+        <!-- Animation Screen -->
+        <div id="animation" class="screen animation-screen">
+            <h2 id="animTitle">正在求卦...</h2>
+            <div class="coins-container">
+                <div id="coin1" class="coin">?</div>
+                <div id="coin2" class="coin">?</div>
+                <div id="coin3" class="coin">?</div>
+            </div>
+            <div id="lineProgress" class="hexagram-building">
+                <!-- Lines will be built here -->
+            </div>
+            <p class="status" id="animStatus">正在掷出第 1 爻...</p>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result" class="screen result-screen">
+            <div class="hex-header">
+                <span class="hex-number" id="resNumber">第1卦</span>
+                <h1 class="hex-name" id="resName">乾為天</h1>
+                <div class="hex-visual" id="resLines">
+                    <!-- CSS Hexagram here -->
+                </div>
+            </div>
+
+            <div class="hex-summary" id="resSummary">
+                <!-- Summary here -->
+            </div>
+
+            <div class="detail-item" onclick="toggleDetail(this)">
+                <div class="detail-header"><span>爱情缘分</span><span class="chevron"></span></div>
+                <div class="detail-content" id="resLove"></div>
+            </div>
+
+            <div class="detail-item" onclick="toggleDetail(this)">
+                <div class="detail-header"><span>事业发展</span><span class="chevron"></span></div>
+                <div class="detail-content" id="resCareer"></div>
+            </div>
+
+            <div class="detail-item" onclick="toggleDetail(this)">
+                <div class="detail-header"><span>古圣建议</span><span class="chevron"></span></div>
+                <div class="detail-content" id="resAdvice"></div>
+            </div>
+
+            <div class="actions">
+                <a href="https://calendly.com/garylogy" class="cta-gold" target="_blank">想要深入了解？预约Gary详细解盘</a>
+                <a href="https://wa.me/6596556588" class="cta-wa" target="_blank">
+                    WhatsApp咨询：+65 9655 6588
+                </a>
+                <button class="restart" onclick="location.reload()">重新起卦</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const HEXAGRAMS = {
+            1: { name: "乾為天", lines: [1,1,1,1,1,1], summary: "小吉，亨通。时机很重要。具备先天的优势，拥有一切良好的条件，自有源源不绝的创造力，资源与能力都不是问题，问题只在于时机。", love: "刚强好胜，容易产生摩擦。", career: "能力强，能够独当一面。然而是否能够亨通，则有待良好的时机。", advice: "建议凡事不要过于固执，最好要能见机行事，随机应变，做事要有弹性。" },
+            2: { name: "坤為地", lines: [0,0,0,0,0,0], summary: "小吉。柔顺、慢慢来，可成；急切、积极进取反而不可得。成功之道在于坚定而持久、找到能够帮助你的领导者并追随于他。", love: "吉，可以慢慢培养感情，坚持到底可成。", career: "小顺。谦卑退让，可找到好的老板。但不利于创业。", advice: "宜顺从运势，以静制动，不宜独立谋事，顺从他人，一起合作，可成大事。" },
+            3: { name: "水雷屯", lines: [0,1,0,0,0,1], summary: "凡事起头难。艰难时刻，适于培养实力，奠定根基，为将来的成功做准备。身处困境，宜守不宜进，须多加辛苦努力，排除困难。", love: "艰难的开始。", career: "创业惟艰，应多注重自己实力的培养，基础的奠定。", advice: "如果能够屯积实力，走过【凡事起头难】的阶段，未来仍是无可限量。" },
+            4: { name: "山水蒙", lines: [1,0,0,0,1,0], summary: "事情迷蒙不明，不宜轻信于人，此卦易犯小人，因危险而停止。能求教于人则有助于事情的进展，方能转危而安。", love: "蒙昧无知的爱情，宜于放弃。", career: "能力不足以应付。需要再多方学习，需诚心求教于有智慧经验的友人长者。", advice: "最好的策略是向有经验与智慧的人请益。若是一意而行必现大凶象。" },
+            5: { name: "水天需", lines: [0,1,0,1,1,1], summary: "龙困浅滩，时机尚未成熟，需要耐心等待，急进反会见凶。虽然你的能力足以化险为夷，但仍不宜妄动。", love: "双方有阻隔，但强行是无法得到的。", career: "虽有能力，但目前还没有适当的机会。先设法渡过眼前危机为宜。", advice: "以退守、静待时机才是上策，若执意行动，虽然事情或许可成，但恐会历经一番浴血苦战。" },
+            6: { name: "天水訟", lines: [1,1,1,0,1,0], summary: "中庸、退让，放弃坚持则吉。官司、争吵、争议。先吉后凶。凡事放弃内心的坚持为上策。平安是福。", love: "争吵、不和。", career: "有争议，有法律的风险。你的坚持是很危险的，凡事不要走极端。", advice: "能够放弃争讼则吉；若是一意争取到底，即使赢了也会召来后续的祸害。" },
+            7: { name: "地水師", lines: [0,0,0,0,1,0], summary: "事情复杂困难而多忧。若是与人事相关的事情，则以选择年老持重而有处事经验或有智慧、谋略的长者最好。得此卦者，困难重重。", love: "异性关系复杂，难以处理而争吵。", career: "责任重大，很具挑战性。若无经验勿试。一败涂地的机会大。", advice: "带兵打仗首先要师出有名，其次用人则是要找老成持重者为宜。无经验者绝不可用。" },
+            8: { name: "水地比", lines: [0,1,0,0,0,0], summary: "积极努力经营好下对上的关系则吉；无法经营这层关系者，则凶。可获朋友之助，众人之力，谋事有成。", love: "积极讨好对方，不可怠慢。", career: "应该积极努力经营好上下属之间的关系。谋事有成，荣显之极。", advice: "只要积极表现出你的诚意，就能受到青睐。比道贵在能够发自内心的积极。" },
+            9: { name: "風天小畜", lines: [1,1,0,1,1,1], summary: "小事可以亨通，大事凶。凡事充满疑云，力量薄弱，运势反复，宜蓄养实力，静待时机，急进则有险。须耐心推进。", love: "男人为女人所养；男子不得志。", career: "怀才不遇，前途不明。积畜与资源少，基础不是很厚实。", advice: "未来充满不确定，当今之计可以退守。放下远大的目标，选择眼前立即就可达成的小目标。" },
+            10: { name: "天澤履", lines: [1,1,1,0,1,1], summary: "凡事小心翼翼，谨守上下尊卑份际，则可以险中求通。需尽快反省自己的态度，虽有危急之事幸好能平安度过。", love: "不好服侍的母老虎/老太爷；相敬如宾。", career: "必需循规蹈矩，凡事照规定来，注意上下的分工与份际，否则必然出重大差错。", advice: "要特别注意人与人的关系上，必需清楚分辨尊卑上下的份际。惹到老虎让它回头咬人，恐有灾难。" },
+            11: { name: "地天泰", lines: [0,0,0,1,1,1], summary: "吉，万事亨通，如意吉祥。小往大来，通泰吉祥。否极泰来，鸿运当头，诸事皆顺，但须防乐极生悲。", love: "双方情投意合，很有话聊。天生一对。", career: "上下和气，打成一片。凡事顺利。前途事业均顺利。", advice: "人无远虑，必有近忧。对于事情的发展应当有防患于未然的远见，则可长保安泰。" },
+            12: { name: "天地否", lines: [1,1,1,0,0,0], summary: "闭塞不通，有严重的沟通问题。上下不合，诸事不顺，凡事宜忍，须待时运好转而有为。万物闭塞之象。", love: "双方无法相互沟通了解。", career: "万事不顺。除了静待时机，等待否极泰来，或许可以多注意一下自己在沟通能力上的问题。", advice: "打破上下无法沟通的局面，则可否极泰来。修德避难。若是做人上司的，建议最好听听下面的声音。" },
+            13: { name: "天火同人", lines: [1,1,1,1,0,1], summary: "与人结盟交好，人我如一，和人打成一片。需同心协力，互相合作，宜包容别人，即可顺利。过程会有阻碍。", love: "有情人终成眷属，和睦融洽,但过程应防第三者从中破坏。", career: "需找到贵人帮助才可成功，更应慎防小人相害。最适合找人合伙事业。", advice: "与人结盟应当要有信心与决心，更应注意自己的诚信与心胸气度，否则中间可能出现阻挠。" },
+            14: { name: "火天大有", lines: [1,0,1,1,1,1], summary: "大吉，得时得运，万事亨通。运气如日中天。事事吉祥，大有收获，但需防物极必反，盛极转衰。", love: "非常有异性缘。", career: "吉星高照，事业顺利。有走红、赚钱之势，须谨慎不可骄纵。", advice: "富有时应保持低调，不要炫耀，以免引来不必要的麻烦。告诫富有之人，不要为富不仁。" },
+            15: { name: "地山謙", lines: [0,0,0,1,0,0], summary: "修行以等待时机，持之以恒可以亨通。吉利平安，步步高升。谦虚忍让者前途大好，骄横者必招败。", love: "要学习退让，谦受益，满招损。", career: "功成不居，虚心退让，久了自能亨通。", advice: "谦是修养自己，以德服人。功成不居，所以伟大。但这些都不是一蹵可及的，而是要持之以恒。" },
+            16: { name: "雷地豫", lines: [0,0,1,0,0,0], summary: "顺着民情、民意，众人之意做事则可成。事事吉祥，可得长辈之助，但须防色难，切不可沉迷于声色欢场之中。", love: "吉。有异性缘。婚姻感情，可得良缘。", career: "利于建立人脉基础。适于娱乐业。", advice: "不要沉溺而迷失自我，要懂得节制，适可而止。可以用【寓教于乐】的手段来完成严肃的事。" },
+            17: { name: "澤雷隨", lines: [0,1,1,0,0,1], summary: "因为得失无常，所以清静无为，顺其自然，是最佳策略。宜随大势，其事可成。凡事与他人多沟通交流，可名利双收。", love: "大吉。夫唱妇随。", career: "有两面难以取舍的情况。不要有太大得失心，随缘就好。", advice: "切不可坚持己见，专横者事不成。随缘，做了让自己高兴就好，不要太强求。" },
+            18: { name: "山風蠱", lines: [1,0,0,1,1,0], summary: "已经出现腐败，努力挽回，仍然大有可为。艰难迷惑之时，事事不如意；宜大胆革新，奋发图强，艰苦努力。", love: "不伦之恋。受到蛊惑，意乱情迷。", career: "不知所措。应力图振作，重新规画打算一翻。有内忧外患之象。", advice: "不是解决眼前问题而已。重要的是必需重新拟定新的计划，建立新的未来。" },
+            19: { name: "地澤臨", lines: [0,0,0,0,1,1], summary: "小吉，亨通。注意若事情无法持续。好运来到，诸事如意，人情和合，但行事不宜过于急进。到八月会有凶。", love: "有一方过于凌厉之象。应学习和悦和柔顺。", career: "长官督促下属。持续为宜。运势渐增，诸事亨通如意，可得贵人相助。", advice: "不要虎头蛇尾，则事情可到达新的境界。若半途而废可能会带来灾难。" },
+            20: { name: "風地觀", lines: [1,1,0,0,0,0], summary: "凡事虔诚而用心的观看、学习，自然能有所获得。见贤思齐；多看少做，自我反省。处身于变化之中，心神不宁。", love: "单恋而远观的爱情。", career: "用心观摩长官怎么做，当能对你有所帮助。", advice: "观卦的吉道在于能够接近核心，并用心去观看发展，从中充实自己。须以诚待之。" },
+            21: { name: "火雷噬嗑", lines: [1,0,1,0,0,1], summary: "小吉，可以小有获得。但要防因得而召祸。强硬态度；事多困阻，积极谋求。事不遂心，纷争难免，诸事被阻。", love: "有些摩擦，需要摩合。谋事及求财皆可得，但过程会有棘手的事。", career: "凡事能小有获得，但需要明察秋毫、明辨是非的能力。", advice: "宜坚守常规，不为利诱，可保平安。分清什么是该得，什么是不该得的。" },
+            22: { name: "山火賁", lines: [1,0,0,1,0,1], summary: "小事吉，大事凶。私事可成，公务不亨通。表面风光，内在空虚，多虚少实。宜充实自己，稳重行事，量力而为。", love: "婚姻可成。但过程并不是很顺利，会有插曲、疑虑。", career: "做小事可以。大事凶。要注意，不要公私不分。慎防有心的小人、伪君子。", advice: "不宜做大事，既使有成，也只是小成。最好不要矜持过度，以致于黑白不分。" },
+            23: { name: "山地剝", lines: [1,0,0,0,0,0], summary: "诸事不宜，最好那里都不去，千万不要远行。此此时为阴气极盛之时，君子宜谨慎隐忍，不可贸然行动。易有急症、意外血光。", love: "风流不专情，很多情人且不知节制。", career: "败坏走下坡，每况愈下。且有受部下连累而损财，为不得志之时运也。", advice: "只能静待时机，等待时局转变，事情进入另一个循环时再重新开始。" },
+            24: { name: "地雷復", lines: [0,0,0,0,0,1], summary: "出入平安，失物可以复得。眼前情况虽不好，但实际上生机暗藏，可以静候时机。谋事可成，但不宜过于急进。", love: "降到冰点，但或可重新再来。", career: "黎明前的黑暗，可静候佳机。", advice: "此时适于闭关休养生息。在最冷的冬天里，生机暗藏，只需等待春天一到，就会欣欣向荣。" },
+            25: { name: "天雷無妄", lines: [1,1,1,0,0,1], summary: "无可逃的灾难，守静为宜，不宜出门。顺其自然，守正道者，诸事皆宜。但行为不检者，必招灾祸。", love: "彼此无可挑剔，但又八字不合。", career: "有凶险，但更应循规蹈矩。", advice: "不要因为遇到灾难而怨天尤人，凡事守静，循规蹈矩自可渡过难关。" },
+            26: { name: "山天大畜", lines: [1,0,0,1,1,1], summary: "养精畜锐，畜势待发之后，可以大胆前往。宜坚守正道，脚踏实地。切勿骄傲自满，目空一切。", love: "受到事业影响而很难兼顾。", career: "会受到重用，功成名就。才华会受到赏识，但很可能是【食碌于外】。", advice: "对于事业很好，大胆前往会受到重用，但将难以兼顾家庭。需要思考清楚自己想要的是什么。" },
+            27: { name: "山雷頤", lines: [1,0,0,0,0,1], summary: "对于言语及饮食，均须谨慎。宜守正道，谨言慎行，心怀阴谋者会招灾祸。谋事时机未到。", love: "感情仍有待培养。", career: "需要加强基本的能力。凡事鸭子划水为宜。可再多充实自己的技能。", advice: "最好再闭关修练。凡事以守静为吉，要知所节制，慎防口舌之灾。" },
+            28: { name: "澤風大過", lines: [0,1,1,1,1,0], summary: "基础不稳，诸事衰退，多烦恼，防官非及水险。有力而不从心，负担过重之象。身心不安，事不如意。", love: "过于纵情，华而不实的关系。", career: "有将无兵，难成大事。", advice: "根基不稳，一切还是应该回头思考如何稳固根本，避免继续腐化。或者另求出路。" },
+            29: { name: "坎為水", lines: [0,1,0,0,1,0], summary: "内、外都是危险，处境艰难。运气不佳，多难危险，宜谨言慎行，退守保安。险中求通。", love: "陷入僵局。漂浮，被情所困。", career: "进退都有困难。", advice: "逃无可逃的危险要能安之若命，进一步求通达变，那么或可化险为夷。" },
+            30: { name: "離為火", lines: [1,0,1,1,0,1], summary: "懂得柔顺与中庸之道，此事自吉，反之则凶。宜谦虚谨慎，稳步进取。急进及意气用事者必有所损失。", love: "过于重视外貌或形式，注意是否过于浮华不实。", career: "适于文学、文创、畜牧等产业。凡事应当走中道。", advice: "若能柔顺中庸则吉。另要注意事情是否外表过于美丽，华而不实；或者人是否流于小聪明。" },
+            31: { name: "澤山咸", lines: [0,1,1,1,0,0], summary: "代表与事情已有所感应。宜谦虚待人，则会吉祥如意，谋事可成。但勿为不正当感情而意乱情迷。", love: "男女心心相映，婚姻大吉。", career: "多倾听他人的意见，以同理心做事。", advice: "虚心倾听，取得他人共鸣。但若感情用事，滥情而不守礼法，则大凶。" },
+            32: { name: "雷風恆", lines: [0,0,1,1,1,0], summary: "小吉，稳定，细水长流。须立身正道，坚守不易，持续努力，必能亨通。缺少毅力者不会成功。", love: "稳定幸福，可以白头偕老。朝三暮四者则不会成功。", career: "稳定但缺少变化、创新，与成长。", advice: "如果你想要的就是稳定，那么这是一个大吉之卦；但若你想要挑战与成长，则需注意未来障碍。" },
+            33: { name: "天山遯", lines: [1,1,1,1,0,0], summary: "小吉，但求事无成。遯卦之吉是因为能够置身事外，远离是非，而不是因为有所成就。宜退不宜进。", love: "对象不宜，能避则避。", career: "无法有成就，只能求明哲保身。", advice: "小人得势的时候，不要想着功成名就，凡事躲得越快越远越好。隐居深山是最好的去处。" },
+            34: { name: "雷天大壯", lines: [0,0,1,1,1,1], summary: "小吉，但会有冲突，甚至受到伤害。运气过于强盛，宜心平气和，谨慎行事。宜退不宜进。", love: "吵架不合。", career: "理直气壮，据理力争或可达到目标，但小心因此而造成冲突。", advice: "凡事应当多点冷静审察情势，不要莽撞，就能够避免不必要的错误与灾难。" },
+            35: { name: "火地晉", lines: [1,0,1,0,0,0], summary: "吉，勇往直前，无往不利。如旭日东升，气运旺盛，谋事可成。聪明才智会受到肯定。", love: "公子花心，受到女子欢迎而围绕之象。", career: "受到重用，发挥所长，连升三级。", advice: "卜问生意与财运也都能有所斩获。旭日东升之象，百事如意。" },
+            36: { name: "地火明夷", lines: [0,0,0,1,0,1], summary: "黑暗的时候，诸事不成，反受诛害。时运不佳，事事劳苦，宜坚守正道，忍耐自重，等待时机。", love: "遭人摒弃，受到情伤。", career: "情势动乱，凡事退避，明哲保身。", advice: "局势混乱，不要想着功成名就，应当以明哲保身、求取生存为第一要务。" },
+            37: { name: "風火家人", lines: [1,1,0,1,0,1], summary: "优先管理好家事、份内之事，事情自然能够顺利。与人合作共事者会有利，家庭和睦者能同心协力。", love: "婚姻幸福，女人贤慧，可以旺夫。", career: "应当管理好自己部门内的事，诸事自然顺利。", advice: "凡事应当优先反躬自省，处理好自己的份内事，处理好了，一切问题都可迎刃而解。" },
+            38: { name: "火澤睽", lines: [1,0,1,0,1,1], summary: "运气不佳，水火不容，相互矛盾，诸事难成。人事不和。若事情能独自完成则小吉。", love: "感情不睦，分手。", career: "孤军奋战。可以做小事，无法做大事。", advice: "如何包容异己，同中存异，是卜得睽卦该学习的智慧。" },
+            39: { name: "水山蹇", lines: [0,1,0,1,0,0], summary: "不宜行动，退守为宜。身心忧苦，举步维艰，宜守正道，不可妄动，涉险境者会有灾难。", love: "困顿无法有进展。", career: "事情窒碍难行，应当知难而退，重新闭关学习成长。", advice: "诸事不宜，强行则有危险。知难而退，回家修练，等待机会，是蹇卦的最佳策略。" },
+            40: { name: "雷水解", lines: [0,0,1,0,1,0], summary: "积极主动则可解决问题。能解脱先前之困难，宜把握良机，求谋事业。凡事先难后易。", love: "有分手的危机，但问题尽早解决仍可转圜。", career: "任何问题都要掌握时机尽快做决定。元气初复，宜休养生息。", advice: "凡事要积极主动，不要拖延，马上解决则吉。贵人在远方，宜出外营谋。" },
+            41: { name: "山澤損", lines: [1,0,0,0,1,1], summary: "凡事眼光放远，不要计较眼前利害得失，则吉而无咎。损己利人，付出总会有回报，因祸得福。", love: "发乎情，止乎礼，以后还有机会，纵情则惹祸上身。", career: "宜牺牲个人以成就长官，放长线钓大鱼。损益得当。", advice: "只要你眼光放远，愿意暂时小小牺牲一下。宁俭勿奢，诸事都可以十分顺利。" },
+            42: { name: "風雷益", lines: [1,1,0,0,0,1], summary: "现正当吉运，可得贵人之助而成功。正当好运，奋发图进。积极进取可以有所获得。", love: "吉，感情增温，可以积极投入。", career: "大胆投入，勇于支持他人事业，必相得益彰。多找成长机会。", advice: "此卦虽吉，但属于长远性的利益。凡事必需努力上进，施比受更有福。" },
+            43: { name: "澤天夬", lines: [0,1,1,1,1,1], summary: "面临棘手的人事问题，手段要委婉，千万不要强硬。大运将过，困难将至，宜提高警惕。", love: "对象任性而难缠，宜于画清界限。", career: "处在兴盛阶段，但已孕育着普遍的危险。务必施恩泽给他人。", advice: "内心固然要果决，但手段则要委婉。虚心听取他人劝告，切勿鲁莽。" },
+            44: { name: "天風姤", lines: [1,1,1,1,1,0], summary: "一时的偶遇，不能长久。阴长阳衰，诸事不顺，宜谨慎行事，更应注意桃色纠纷。", love: "只是一场邂遘，不能当真，无法长久。嫁娶不宜。", career: "偶尔的运气。对于女子事业是大吉之卦，女强人之象。", advice: "既然是【邂遘】，好事也只是一时的运气，不应当因此做长久之计。提防小人。" },
+            45: { name: "澤地萃", lines: [0,1,1,0,0,0], summary: "可以亨通，但适于隆重盛大以表现诚意。运气大好，能得到贵人的帮助。出类拔萃。", love: "受众人欢迎，经常被人所包围。", career: "适于营销、广告活动。集合众人之力也是解决问题的很好方法。", advice: "最适于【聚集人气】一类的事务。获利丰厚，无往不利。" },
+            46: { name: "地風升", lines: [0,0,0,1,1,0], summary: "事情进展缓慢，让人忧心，但只要勇往直前，日久自然可成。运气升腾，积极向上发展。", love: "耐心等待，慢慢培养感情可成。若能找人媒合更佳。", career: "脚踏实地可以稳定成长，若找到贵人提携，则可加快晋升。", advice: "成长原本就是缓慢而需要时间的。耐心等候，有朝一日一定可成。" },
+            47: { name: "澤水困", lines: [0,1,1,0,1,0], summary: "不如意，被小人欺，劳而无功，损坏之灾。陷入困境，宜坚守正道，等待时机。宜守己待时。", love: "穷困不通。", career: "穷困潦倒，有破产甚至负债的危险。才智难施。", advice: "所谓【穷则变，变则通】，应坚守节操，谨言慎行，穷中求通。" },
+            48: { name: "水風井", lines: [0,1,0,1,1,0], summary: "反躬自省，培养实力，多积阴德，未雨绸缪。修身养性，顺其自然。静有利，动则凶。", love: "应多修养内涵。", career: "培养好自己的专业能力，日积月累自然可成。", advice: "井道重在自清。凡事应多反躬自省，修养自己的内涵。最怕急功近利。" },
+            49: { name: "澤火革", lines: [0,1,1,1,0,1], summary: "变革则吉而无咎，守旧则凶。事多变动，坚守正道。凡事宜去旧立新。", love: "大凶，水火不容，有两女争一夫之象。", career: "有人事恶斗不和的情况。变革为吉。正处在转折的关键时刻。", advice: "洗心革面为吉，如果自己不革新，等着别人来改变，那就会变成革命。" },
+            50: { name: "火風鼎", lines: [1,0,1,1,1,0], summary: "大吉，但凡事宜创新不宜守旧。万事通达，平步青云。能得到朋友的帮助，取得不错成就。", love: "女子贤慧而能持家。顺利，但勿不切合实际。", career: "大吉，有得权之象。事业会因为改革创新而发展。", advice: "鼎卦吉道在于养贤、创新。前程远大，最终可实现抱负。" },
+            51: { name: "震為雷", lines: [0,0,1,0,0,1], summary: "先恐惧，后喜庆。重雷发响，奋发图强。先难后易，先苦后甜。但表面风光，内恐有难。", love: "有情变的危险，若能谨慎小心处理，则能够化解。", career: "事情有突然的变动。戒慎恐惧则吉。临危不乱。", advice: "面对变动若能警惕，谨慎处事，则有惊无险。反之，则可能有灾害。" },
+            52: { name: "艮為山", lines: [1,0,0,1,0,0], summary: "原地打转，毫无进展，一事无成。停留阻止，无可再进；随份勿贪，不可强求。宜守待机。", love: "擦身而过，无法见面。阻碍重重。", career: "停顿，发展非常困难。", advice: "应当停止的时候就停止，千万不要轻举妄动。守住本份，求得不犯错。" },
+            53: { name: "風山漸", lines: [1,1,0,1,0,0], summary: "进取可以有功，但应当循序渐进。逐步开运，谋事可成。不宜急进，性急则败。", love: "嫁娶大吉。不可操之过急。幸福、美满。", career: "重新开始了事业的新阶段。务必循序上进，脚踏实地。", advice: "忌走捷径，不能躁进。依礼法而行，循序渐进，则诸事大吉。" },
+            54: { name: "雷澤歸妹", lines: [0,0,1,0,1,1], summary: "祸出百端，事物有违常理。初时有悦，不久反凶。困难之时，做事有违常理。", love: "婚姻可成，但过于感情用事，不符礼法，不见得幸福。", career: "结盟、合作可以成功，但有法律风险。其余事务，凶。", advice: "凡事要特别注意不要感情用事。宜明察事理，修身养性，断绝妄念。" },
+            55: { name: "雷火豐", lines: [0,0,1,1,0,1], summary: "日正当中为宜。凡事宜盛大。盛大丰满，进财获利；谋望克遂，必有喜庆。运势正强。", love: "情感基础虽不深，但至少外表亮丽而精彩丰富。", career: "不需太过担心，有贵人相助。适于营销、广告、活动等之举行。", advice: "事情可以打铁趁热，顺势推舟。但不宜过贪，要知足常乐，谨防乐极生悲。" },
+            56: { name: "火山旅", lines: [1,0,1,1,0,0], summary: "小事可亨通，大事凶。事情不稳定。事多变动，如在异乡。宜谨守常规。", love: "对像不固定。双方的不确定因素较多。婚姻美满。", career: "不稳定。正处于创业、发展的阶段。只要能坚持中正，事业可顺利。", advice: "行旅在外行事应低调，聪明于内，谨慎于外，守静为宜。" },
+            57: { name: "巽為風", lines: [1,1,0,1,1,0], summary: "柔顺而慢慢地来，都可成功。顺伏容人，谦虚行事；得贵多助。运势起伏不定。", love: "不可抱轻率的态度，而应慎重。可以渐入佳境。", career: "市利三倍，大吉。正在发展中，会受挫折，但在贵人帮助下有理想结果。", advice: "事缓则圆，凡事柔顺以对。但小事可成，大事凶。宜找贵人。" },
+            58: { name: "兌為澤", lines: [0,1,1,0,1,1], summary: "小事可亨通。多喜庆之事，人情和合，但应坚守正道，否则犯灾。以喜悦驱动人。", love: "感情融洽。", career: "小亨通。适于娱乐事业。", advice: "喜悦是趋动人前进的力量。能够与人相互切磋，当有所得。" },
+            59: { name: "風水渙", lines: [1,1,0,0,1,0], summary: "可以化险为夷，但诸事难成。初有不顺，但终可解困。凡事宜小心。", love: "分手。", career: "危险可除，但难有成就。", advice: "危险可化解。但凡事若要成功，则较为困难，问题在于人心过于涣散。" },
+            60: { name: "水澤節", lines: [0,1,0,0,1,1], summary: "适当节制可小亨通。不节制则凶。安分守己，切忌贪心不足，不宜过份。", love: "很辛苦。", career: "适当节制可求得小亨通。投资理财需节制有守。", advice: "节制不够会散乱，太快则成苦节。长远来说，最好的节制方法是建立制度。" },
+            61: { name: "風澤中孚", lines: [1,1,0,0,1,1], summary: "必需以虚心、诚实说服他人，才能渡过危险。正直诚信者吉利，得朋友助。心存邪念者则凶。", love: "双方以诚信的态度相互对待，幸福美满。", career: "有财务虚空之象。以诚实忠信对待事业，获得重大成就。", advice: "吉道在于虚心、诚实，信誉。只有诚信才能真的感动人、说服人。" },
+            62: { name: "雷山小過", lines: [0,0,1,1,0,0], summary: "退守、以静制动为宜。诸事不利，宜行小事，不宜成大事，防自身过失惹是非。", love: "放弃为宜。较长时间的彼此了解。", career: "凡事退一步为吉，进一步、往上爬则凶。", advice: "得小过卦有如在躲猎人的小鸟，静静不动反而是最安全的。宜下不宜上。" },
+            63: { name: "水火既濟", lines: [0,1,0,1,0,1], summary: "先吉后凶。事可成，但应提防后势走下坡。事业有成，但谨防盛极必衰。", love: "金童玉女的绝配。", career: "亨通。但应提防即将开始走下坡。思患预防，防微杜渐。", advice: "人无远虑，必有近忧；若只沉浸于眼前的完美状态，则凶险不远。" },
+            64: { name: "火水未濟", lines: [1,0,1,0,1,0], summary: "无利可图，小心被外表所欺骗，不及其利，反受其害。运势不通，事不能如愿。", love: "小心被外表所欺骗，受到伤害。", career: "若不用心明辨真相，可能受到二次伤害。无利可图。", advice: "做任何事情之前都要小心观察。由小及大，稳步进取，耐心突破难关。" }
+        };
+
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        let userQuestion = "";
+        let generatedLines = [];
+
+        function startDivination() {
+            userQuestion = document.getElementById('questionInput').value.trim();
+            if (!userQuestion) {
+                alert("请先输入您想咨询的事情。");
+                return;
+            }
+            showScreen('animation');
+            runTossProcess();
+        }
+
+        async function runTossProcess() {
+            generatedLines = [];
+            const lineProgress = document.getElementById('lineProgress');
+            lineProgress.innerHTML = "";
+            const status = document.getElementById('animStatus');
+
+            for (let i = 1; i <= 6; i++) {
+                status.innerText = `正在掷出第 ${i} 爻...`;
+                const lineVal = await tossCoins();
+                generatedLines.push(lineVal);
+                
+                // Add line to visual display
+                const lineDiv = document.createElement('div');
+                lineDiv.className = 'line-display';
+                if (lineVal === 1) {
+                    lineDiv.innerHTML = '<div class="line-solid"></div>';
+                } else {
+                    lineDiv.innerHTML = '<div class="line-broken"></div><div class="line-broken"></div>';
+                }
+                lineProgress.appendChild(lineDiv);
+                setTimeout(() => lineDiv.classList.add('show'), 50);
+                
+                await new Promise(r => setTimeout(r, 500));
+            }
+
+            status.innerText = "起卦完成，正在感应命运...";
+            setTimeout(showResult, 1500);
+        }
+
+        function tossCoins() {
+            return new Promise(resolve => {
+                const c1 = document.getElementById('coin1');
+                const c2 = document.getElementById('coin2');
+                const c3 = document.getElementById('coin3');
+
+                c1.classList.add('spinning');
+                c2.classList.add('spinning');
+                c3.classList.add('spinning');
+
+                setTimeout(() => {
+                    const r1 = Math.round(Math.random());
+                    const r2 = Math.round(Math.random());
+                    const r3 = Math.round(Math.random());
+                    
+                    c1.classList.remove('spinning');
+                    c2.classList.remove('spinning');
+                    c3.classList.remove('spinning');
+                    
+                    c1.innerText = r1 ? "正" : "反";
+                    c2.innerText = r2 ? "正" : "反";
+                    c3.innerText = r3 ? "正" : "反";
+
+                    // 0=old yin(0), 1=yang(1), 2=yin(0), 3=old yang(1)
+                    const heads = r1 + r2 + r3;
+                    const line = (heads === 1 || heads === 3) ? 1 : 0;
+                    resolve(line);
+                }, 1000);
+            });
+        }
+
+        function showResult() {
+            // Finding the hexagram
+            // generatedLines is [bottom to top]
+            // We need to compare with HEXAGRAMS[id].lines [top to bottom]
+            const resultLines = [...generatedLines].reverse(); // Now it's top to bottom
+            
+            let foundId = 1;
+            for (let id in HEXAGRAMS) {
+                const hexLines = HEXAGRAMS[id].lines;
+                if (JSON.stringify(hexLines) === JSON.stringify(resultLines)) {
+                    foundId = id;
+                    break;
+                }
+            }
+
+            const hex = HEXAGRAMS[foundId];
+            document.getElementById('resNumber').innerText = `第${foundId}卦`;
+            document.getElementById('resName').innerText = hex.name;
+            document.getElementById('resSummary').innerText = hex.summary;
+            document.getElementById('resLove').innerText = hex.love;
+            document.getElementById('resCareer').innerText = hex.career;
+            document.getElementById('resAdvice').innerText = hex.advice;
+
+            // Render symbol
+            const resLinesDiv = document.getElementById('resLines');
+            resLinesDiv.innerHTML = "";
+            hex.lines.forEach(l => {
+                const ld = document.createElement('div');
+                ld.className = 'line-display show';
+                ld.style.width = "120px";
+                if (l === 1) {
+                    ld.innerHTML = '<div class="line-solid"></div>';
+                } else {
+                    ld.innerHTML = '<div class="line-broken"></div><div class="line-broken"></div>';
+                }
+                resLinesDiv.appendChild(ld);
+            });
+
+            showScreen('result');
+        }
+
+        function toggleDetail(el) {
+            el.classList.toggle('open');
+        }
+    </script>
+</body>
+</html>
