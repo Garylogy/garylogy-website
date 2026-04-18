@@ -3842,7 +3842,7 @@ https://garylogy.org`;
     unreadDot2.style.display = 'none';
     if (isOpen2 && !greeted2) {
       greeted2 = true;
-      setTimeout(() => sendToBot2('你好'), 400);
+      setTimeout(() => sendToBot2('__init__'), 400);
     }
     if (isOpen2) input2.focus();
   }
@@ -3852,7 +3852,8 @@ https://garylogy.org`;
     wrap.className = 'gary-msg ' + role;
     const b = document.createElement('div');
     b.className = 'gcbubble';
-    b.textContent = text;
+    const escaped = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    b.innerHTML = escaped.replace(/\n/g, '<br>');
     wrap.appendChild(b);
     messagesEl.appendChild(wrap);
     messagesEl.scrollTop = messagesEl.scrollHeight;

@@ -674,7 +674,7 @@
     unreadDot.style.display = 'none';
     if (isOpen && !greeted) {
       greeted = true;
-      setTimeout(() => sendToBot('你好'), 400);
+      setTimeout(() => sendToBot('__init__'), 400);
     }
     if (isOpen) input.focus();
   }
@@ -684,7 +684,9 @@
     wrap.className = 'gary-msg ' + role;
     const b = document.createElement('div');
     b.className = 'bubble';
-    b.textContent = text;
+    // Render newlines as <br> and escape HTML entities for safety
+    const escaped = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    b.innerHTML = escaped.replace(/\n/g, '<br>');
     wrap.appendChild(b);
     messagesEl.appendChild(wrap);
     messagesEl.scrollTop = messagesEl.scrollHeight;
