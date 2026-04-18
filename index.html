@@ -550,7 +550,7 @@
   </script>
 
 
-<!-- ── GARYLOGY AI Chat Widget ── -->
+<!-- ── GARYLOGY AI Chat Widget v2 ── -->
 <style>
   #gary-chat-btn {
     position: fixed; bottom: 28px; right: 28px; z-index: 9999;
@@ -590,19 +590,35 @@
   #gary-chat-messages {
     flex: 1; overflow-y: auto; padding: 14px 14px 8px;
     display: flex; flex-direction: column; gap: 10px;
-    min-height: 220px; max-height: 320px;
+    min-height: 260px; max-height: 380px;
     scrollbar-width: thin; scrollbar-color: #2e2a26 transparent;
   }
-  .gary-msg { display: flex; flex-direction: column; max-width: 85%; }
+  .gary-msg { display: flex; flex-direction: column; max-width: 88%; }
   .gary-msg.bot { align-self: flex-start; }
   .gary-msg.user { align-self: flex-end; }
   .gary-msg .bubble {
-    padding: 9px 13px; border-radius: 12px; font-size: 13.5px; line-height: 1.55;
+    padding: 9px 13px; border-radius: 12px; font-size: 13.5px; line-height: 1.65;
   }
   .gary-msg.bot .bubble { background: #1c1917; color: #faf7f2; border-bottom-left-radius: 4px; }
   .gary-msg.user .bubble { background: linear-gradient(135deg, #d4a853, #b8860b); color: #0a0908; border-bottom-right-radius: 4px; }
   .gary-typing { align-self: flex-start; }
   .gary-typing .bubble { background: #1c1917; color: #a8a29e; font-size: 13px; padding: 9px 14px; border-radius: 12px; border-bottom-left-radius: 4px; }
+  /* Quick-reply buttons (language & topic choices) */
+  .gary-choices {
+    display: flex; flex-direction: column; gap: 6px;
+    align-self: flex-start; width: 100%; max-width: 88%;
+  }
+  .gary-choice-btn {
+    background: #1c1917; border: 1px solid #3a3530; border-radius: 20px;
+    color: #faf7f2; font-size: 13px; padding: 7px 14px;
+    cursor: pointer; text-align: left; transition: background 0.15s, border-color 0.15s;
+    font-family: inherit;
+  }
+  .gary-choice-btn:hover { background: #2e2a26; border-color: #d4a853; }
+  .gary-choice-btn.recommended {
+    border-color: #d4a853; color: #d4a853; font-weight: 600;
+  }
+  .gary-choice-btn.recommended::after { content: ' ✦'; font-size: 11px; }
   #gary-chat-input-area {
     display: flex; gap: 8px; padding: 10px 12px 12px;
     border-top: 1px solid #2e2a26; background: #0a0908;
@@ -635,13 +651,13 @@
     <div class="avatar">✦</div>
     <div class="info">
       <div class="name">Gary · GARYLOGY</div>
-      <div class="status">九运玄学顾问 · Online</div>
+      <div class="status">Metaphysics Consultant · Online</div>
     </div>
     <button id="gary-chat-close" aria-label="Close">×</button>
   </div>
   <div id="gary-chat-messages"></div>
   <div id="gary-chat-input-area">
-    <input id="gary-chat-input" type="text" placeholder="Ask Gary anything... 问Gary任何问题" maxlength="300" />
+    <input id="gary-chat-input" type="text" placeholder="Type a message..." maxlength="300" />
     <button id="gary-chat-send" aria-label="Send">
       <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
     </button>
@@ -667,6 +683,33 @@
   let isOpen = false;
   let sessionId = 'web_' + Math.random().toString(36).substr(2, 9);
   let greeted = false;
+  let langSelected = false;
+
+  // Language list: [code, label, flag]
+  const LANGUAGES = [
+    ['1', '中文', '🇨🇳'],
+    ['2', 'English', '🇬🇧'],
+    ['3', 'Bahasa Melayu', '🇲🇾'],
+    ['4', 'ภาษาไทย', '🇹🇭'],
+    ['5', 'Bahasa Indonesia', '🇮🇩'],
+    ['6', '日本語', '🇯🇵'],
+    ['7', '한국어', '🇰🇷'],
+  ];
+
+  // Map country code → recommended language code
+  const COUNTRY_LANG = {
+    CN: '1', TW: '1', HK: '1', MO: '1', SG: '1',
+    MY: '3', TH: '4', ID: '5', JP: '6', KR: '7',
+    US: '2', GB: '2', AU: '2', NZ: '2', CA: '2', IE: '2',
+  };
+
+  let recommendedLang = '2'; // default English
+
+  // Detect IP country
+  fetch('https://ipapi.co/json/')
+    .then(r => r.json())
+    .then(d => { if (d && d.country_code && COUNTRY_LANG[d.country_code]) recommendedLang = COUNTRY_LANG[d.country_code]; })
+    .catch(() => {});
 
   function toggleChat() {
     isOpen = !isOpen;
@@ -674,7 +717,7 @@
     unreadDot.style.display = 'none';
     if (isOpen && !greeted) {
       greeted = true;
-      setTimeout(() => sendToBot('__init__'), 400);
+      setTimeout(showLanguageMenu, 400);
     }
     if (isOpen) input.focus();
   }
@@ -684,7 +727,6 @@
     wrap.className = 'gary-msg ' + role;
     const b = document.createElement('div');
     b.className = 'bubble';
-    // Render newlines as <br> and escape HTML entities for safety
     const escaped = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     b.innerHTML = escaped.replace(/\n/g, '<br>');
     wrap.appendChild(b);
@@ -693,11 +735,36 @@
     return wrap;
   }
 
+  function showLanguageMenu() {
+    // Greeting message
+    appendMsg("Hi! I'm Gary 👋\nSingapore Metaphysics Strategy Consultant\n\nPlease choose your language:", 'bot');
+
+    // Language buttons
+    const choicesWrap = document.createElement('div');
+    choicesWrap.className = 'gary-choices';
+
+    LANGUAGES.forEach(([code, label, flag]) => {
+      const btn = document.createElement('button');
+      btn.className = 'gary-choice-btn' + (code === recommendedLang ? ' recommended' : '');
+      btn.textContent = flag + '  ' + label;
+      btn.addEventListener('click', () => {
+        choicesWrap.remove();
+        appendMsg(flag + ' ' + label, 'user');
+        langSelected = true;
+        sendToBot(code);
+      });
+      choicesWrap.appendChild(btn);
+    });
+
+    messagesEl.appendChild(choicesWrap);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
   function showTyping() {
     const wrap = document.createElement('div');
     wrap.className = 'gary-typing';
     wrap.id = 'gary-typing-indicator';
-    wrap.innerHTML = '<div class="bubble">Gary 正在输入…</div>';
+    wrap.innerHTML = '<div class="bubble">·  ·  ·</div>';
     messagesEl.appendChild(wrap);
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
@@ -707,22 +774,19 @@
     if (t) t.remove();
   }
 
-  async function sendToBot(userMsg) {
-    if (userMsg && userMsg !== '你好') appendMsg(userMsg, 'user');
+  async function sendToBot(userMsg, displayMsg) {
     showTyping();
     try {
       const url = `${BOT_URL}?phone=${encodeURIComponent(sessionId)}&msg=${encodeURIComponent(userMsg)}`;
       const res = await fetch(url);
       const data = await res.json();
       removeTyping();
-      const reply = data.reply || '不好意思，我这边卡了一下，请再说一遍 😊';
+      const reply = data.reply || 'Sorry, something went wrong. Please try again 😊';
       appendMsg(reply, 'bot');
-      if (!isOpen) {
-        unreadDot.style.display = 'block';
-      }
+      if (!isOpen) unreadDot.style.display = 'block';
     } catch(e) {
       removeTyping();
-      appendMsg('网络有点问题，请稍后再试 🙏', 'bot');
+      appendMsg('Connection error. Please try again 🙏', 'bot');
     }
   }
 
@@ -730,19 +794,19 @@
     const msg = input.value.trim();
     if (!msg) return;
     input.value = '';
+    appendMsg(msg, 'user');
     sendToBot(msg);
   }
 
   btn.addEventListener('click', toggleChat);
   closeBtn.addEventListener('click', toggleChat);
   sendBtn.addEventListener('click', handleSend);
-  input.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } });
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
+  });
 
-  // Show unread dot after 8s if chat not opened
   setTimeout(() => {
-    if (!isOpen && !greeted) {
-      unreadDot.style.display = 'block';
-    }
+    if (!isOpen && !greeted) unreadDot.style.display = 'block';
   }, 8000);
 })();
 </script>
